@@ -1,0 +1,27 @@
+{
+  "name": "solaire-discord",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wwselleck/solaire-discord.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wwselleck/solaire-discord/issues"
+  },
+  "homepage": "https://github.com/wwselleck/solaire-discord#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.28",
+    "@types/ws": "^7.4.0"
+  }
+}
