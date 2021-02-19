@@ -1,5 +1,5 @@
 # Solaire
-A lightweight framework for creating discord bots using Node.
+A lightweight framework for creating Discord bots using Node.
 
 ```js
 import { Solaire } from "solaire-discord";
