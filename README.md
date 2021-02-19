@@ -46,6 +46,7 @@ Soliare uses a manpage-esque style of defining commands.
 ```js
    const bot = Solaire.create({
     ...
+    commandPrelude: '!',
     commands: {
       'play|p <youtubeUrl> [times]': {
         execute({ args, message }) {
@@ -63,7 +64,7 @@ Soliare uses a manpage-esque style of defining commands.
 
 When your command is invoked in chat, the passed in `execute` function will be called with your defined `args` and the `Discord.js::Message` object that invoked the command.
 
-> play https://www.youtube.com/watch?v=EsfjKkdw1Cs 3
+> !play https://www.youtube.com/watch?v=EsfjKkdw1Cs 3
 ```
  execute({ args, message }) {
    // args: {
@@ -72,5 +73,19 @@ When your command is invoked in chat, the passed in `execute` function will be c
    // }
   }
 ```
+
+#### Command Prelude
+It is heavily suggested that you assign a `commandPrelude` to you bot, which is the string that is required at the start of any command invocation.
+
+```js
+   const bot = Solaire.create({
+    ...
+    // To invoke a command in chat, the message has to start with '!'
+    // e.g. ❌  play https://www.youtube.com/watch?v=EsfjKkdw1Cs WON'T work
+    //      ✅ !play https://www.youtube.com/watch?v=EsfjKkdw1Cs WILL work
+    commandPrelude: '!',
+   })
+```
+
 
 
