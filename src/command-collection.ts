@@ -1,61 +1,25 @@
-import Discord from "discord.js";
 import { Command } from "./command";
-import {
-  parseCommandMessage,
-  buildExecuteArgs,
-  MissingRequiredArgumentError,
-} from "./command-processing";
-
-const replyWithError = (message: Discord.Message, error: Error) => {
-  message.reply(error.message);
-};
+import { validateCommand } from "./command-validate";
 
 export class CommandCollection {
-  private options: { prelude?: string };
-
-  constructor(private commands: Command[], options: { prelude?: string }) {
-    this.options = options ?? {};
+  constructor(private commands: Command[]) {
+    commands.forEach((command) => validateCommand(command));
   }
 
   addCommand(command: Command) {
     this.commands.push(command);
   }
 
-  processMessage(message: Discord.Message) {
-    const parsedCommandMessage = parseCommandMessage(
-      message.content,
-      this.options.prelude
-    );
-
-    // Could not parse message into a command call,
-    // no need to handle
-    if (!parsedCommandMessage.success) {
-      return;
-    }
-
-    this.commands.forEach((command) => {
-      const messageIsCallingCommand = [
+  getCommand(keyword: string) {
+    for (const command of this.commands) {
+      const keywordMatchesCommand = [
         command.name,
         ...(command.aliases ?? []),
-      ].includes(parsedCommandMessage.result.name);
-
-      if (!messageIsCallingCommand) {
-        return;
+      ].includes(keyword);
+      if (keywordMatchesCommand) {
+        return command;
       }
-
-      const executeArgs = buildExecuteArgs(
-        parsedCommandMessage.result.args,
-        command.args
-      );
-
-      if (!executeArgs.success) {
-        if (executeArgs.error instanceof MissingRequiredArgumentError) {
-          replyWithError(message, executeArgs.error);
-        }
-        return;
-      }
-
-      command.execute({ args: executeArgs.result, message });
-    });
+    }
+    return null;
   }
 }

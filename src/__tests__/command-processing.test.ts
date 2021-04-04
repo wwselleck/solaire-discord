@@ -1,8 +1,26 @@
+import Discord from "discord.js";
 import {
   parseCommandMessage,
   buildExecuteArgs,
   MissingRequiredArgumentError,
+  InvalidArgValue,
 } from "../command-processing";
+
+const MockGuildMember = () => {
+  return { id: "abc1" };
+};
+
+const MockMessage = () => {
+  return ({
+    guild: {
+      members: {
+        cache: {
+          get: () => MockGuildMember(),
+        },
+      },
+    },
+  } as unknown) as Discord.Message;
+};
 
 describe("parseCommandMessage", () => {
   it("should correctly parse a valid command message with a prelude", () => {
@@ -69,12 +87,35 @@ describe("buildExecuteArgs", () => {
       },
     ];
 
-    const res = buildExecuteArgs(messageArgs, commandArgs);
+    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
 
     expect(res.success).toEqual(true);
     expect((res as any).result).toEqual({
       X: "a",
       Y: "b",
+    });
+  });
+
+  it("should correctly build args with rest arg", () => {
+    const messageArgs = ["weston", "this", "is", "a", "test"];
+    const commandArgs = [
+      {
+        name: "user",
+        required: true,
+      },
+      {
+        name: "text",
+        required: true,
+        rest: true,
+      },
+    ];
+
+    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+
+    expect(res.success).toEqual(true);
+    expect((res as any).result).toEqual({
+      user: "weston",
+      text: "this is a test",
     });
   });
 
@@ -91,13 +132,14 @@ describe("buildExecuteArgs", () => {
       },
     ];
 
-    const res = buildExecuteArgs(messageArgs, commandArgs);
+    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
 
     expect(res.success).toEqual(true);
     expect((res as any).result).toEqual({
       X: "a",
     });
   });
+
   it("should fail if a required arg is missing", () => {
     const messageArgs = ["a"];
     const commandArgs = [
@@ -111,10 +153,72 @@ describe("buildExecuteArgs", () => {
       },
     ];
 
-    const res = buildExecuteArgs(messageArgs, commandArgs);
+    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
 
     expect(res.success).toEqual(false);
     expect((res as any).error).toBeInstanceOf(MissingRequiredArgumentError);
     expect((res as any).error.argName).toEqual("Y");
+  });
+
+  describe("type resolving", () => {
+    it("should resolve an arg with no type as a string", () => {
+      const messageArgs = ["abc"];
+      const commandArgs = [
+        {
+          name: "X",
+        },
+      ];
+
+      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+      expect((res as any).result).toEqual({
+        X: "abc",
+      });
+    });
+
+    it("should resolve an arg with a 'Int' type as an int", () => {
+      const messageArgs = ["2"];
+      const commandArgs = [
+        {
+          name: "X",
+          type: "Int",
+        },
+      ];
+
+      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+      expect((res as any).result).toEqual({
+        X: 2,
+      });
+    });
+
+    /*
+    it("should resolve an arg with a 'Member' type as an GuildMember", () => {
+      const messageArgs = ["abc1"];
+      const commandArgs = [
+        {
+          name: "X",
+          type: "Int",
+        },
+      ];
+
+      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+      expect((res as any).result).toEqual({
+        X: ,
+      });
+    });
+    */
+
+    it("should return an error if an arg of type 'Int' is passed a non-int value", () => {
+      const messageArgs = ["abdf"];
+      const commandArgs = [
+        {
+          name: "X",
+          type: "Int",
+        },
+      ];
+
+      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+      expect(res.success).toEqual(false);
+      expect((res as any).error instanceof InvalidArgValue).toEqual(true);
+    });
   });
 });

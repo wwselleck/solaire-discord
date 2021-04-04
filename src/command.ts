@@ -2,14 +2,16 @@ import Discord from "discord.js";
 
 export interface CommandArg {
   name: string;
-  required: boolean;
+  required?: boolean;
+  rest?: boolean;
+  type?: string;
 }
 
 export type CommandExecuteArgs = Record<string, string>;
 
 export interface CommandExecutePayload {
   message: Discord.Message;
-  args?: CommandExecuteArgs;
+  args: CommandExecuteArgs;
 }
 
 export interface Command {
@@ -25,7 +27,8 @@ export function parseCommandString(cmdString: string) {
     throw new Error("Invalid command string: Missing name");
   }
   const { name, aliases } = parseCommandStringName(nameToken);
-  const args = argTokens.map((token) => parseArgToken(token));
+  const args = argTokens.map((token) => parseArgTokenToCommandArg(token));
+
   return {
     name,
     aliases,
@@ -38,11 +41,76 @@ function parseCommandStringName(cmdStringName: string) {
   return { name, aliases };
 }
 
-function parseArgToken(argToken: string): CommandArg {
-  const name = argToken.slice(1, -1);
-  const required = argToken[0] === "<";
+interface ParsedArgToken {
+  name: string;
+  surroundingChars: [string, string];
+  type?: string;
+  rest?: boolean;
+}
+
+function parseArgToken(argToken: string): ParsedArgToken {
+  const innerText = argToken.slice(1, -1);
+
+  const { name, rest, type } = parseArgTokenInnerText(innerText);
+  const surroundingChars: [string, string] = [
+    argToken[0],
+    argToken[argToken.length - 1],
+  ];
+
   return {
     name,
-    required,
+    rest,
+    surroundingChars,
+    type,
+  };
+}
+
+interface ParsedArgTokenInnerText {
+  name: string;
+  rest?: boolean;
+  type?: string;
+}
+
+function parseArgTokenInnerText(innerText: string): ParsedArgTokenInnerText {
+  if (innerText.startsWith("...")) {
+    const name = innerText.slice(3);
+    if (name.includes(":")) {
+      throw new Error(`Rest arg (${name}) can not specify type`);
+    }
+    return {
+      name: innerText.slice(3),
+      rest: true,
+    };
+  }
+
+  const [name, type] = innerText.split(":");
+
+  return {
+    name,
+    type: type,
+  };
+}
+
+function parseArgTokenToCommandArg(argToken: string): CommandArg {
+  const { name, rest, surroundingChars, type: argType } = parseArgToken(
+    argToken
+  );
+
+  const isRequired = ([startChar, endChar]: [string, string]) => {
+    if (startChar === "<" && endChar === ">") {
+      return true;
+    } else if (startChar === "[" && endChar === "]") {
+      return false;
+    }
+    throw new Error(
+      `Argument ${name} has invalid surrounding characters ${surroundingChars}`
+    );
+  };
+
+  return {
+    name,
+    ...(rest && { rest }),
+    ...(argType && { type: argType }),
+    required: isRequired(surroundingChars),
   };
 }

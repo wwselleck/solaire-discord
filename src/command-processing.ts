@@ -1,5 +1,26 @@
 import Discord from "discord.js";
 import { Command } from "./command";
+import { CommandProcessingError } from "./error";
+
+export class MissingRequiredArgumentError extends CommandProcessingError {
+  constructor(public argName: string) {
+    super(`Missing required argument ${argName}`);
+    Object.setPrototypeOf(this, MissingRequiredArgumentError.prototype);
+  }
+}
+
+export class InvalidArgValue extends CommandProcessingError {
+  constructor(
+    public argName: string,
+    public argStr: string,
+    public argType?: string
+  ) {
+    super(
+      `Invalid value ${argStr} provided for arg ${argName} of type ${argType}`
+    );
+    Object.setPrototypeOf(this, InvalidArgValue.prototype);
+  }
+}
 
 function escapeRegex(str: string) {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
@@ -31,6 +52,34 @@ const extractCommandTokens = (prelude: string = "", message: string) => {
   return messageWithoutPrelude.match(/\S+/g) ?? [];
 };
 
+export const resolveArgValueOfType = (
+  message: Discord.Message,
+  argStr: string,
+  argType?: string
+) => {
+  if (!argType) {
+    return argStr;
+  }
+  if (argType === "Int") {
+    const res = parseInt(argStr);
+    if (Number.isNaN(res)) {
+      throw new Error("Could not parse int");
+    }
+    return res;
+  }
+  if (argType === "Float") {
+    const res = parseFloat(argStr);
+    if (Number.isNaN(res)) {
+      throw new Error("Could not parse float");
+    }
+    return res;
+  }
+  if (argType === "Member") {
+    return message.guild!.members.cache.get(argStr);
+  }
+  throw new Error(`Invalid arg type ${argType}`);
+};
+
 interface ParsedCommandMessage {
   name: string;
   args: string[];
@@ -58,14 +107,8 @@ export const parseCommandMessage = (
   };
 };
 
-export class MissingRequiredArgumentError extends Error {
-  constructor(public argName: string) {
-    super(`Missing required argument ${argName}`);
-    Object.setPrototypeOf(this, MissingRequiredArgumentError.prototype);
-  }
-}
-
 export const buildExecuteArgs = (
+  message: Discord.Message,
   messageArgs: ParsedCommandMessage["args"],
   commandArgs?: Command["args"]
 ):
@@ -76,22 +119,49 @@ export const buildExecuteArgs = (
   }
   const args = {} as Record<string, any>;
 
-  let argIndex = 0;
-  while (argIndex < messageArgs.length) {
-    const messageArg = messageArgs[argIndex];
-    const commandArg = commandArgs[argIndex];
-    args[commandArg.name] = messageArg;
-    argIndex++;
+  let commandArgIndex = 0;
+  let messageArgIndex = 0;
+  while (
+    commandArgIndex < commandArgs.length &&
+    messageArgIndex < messageArgs.length
+  ) {
+    const messageArg = messageArgs[messageArgIndex];
+    const commandArg = commandArgs[commandArgIndex];
+
+    if (commandArg.rest) {
+      args[commandArg.name] = messageArgs.slice(messageArgIndex).join(" ");
+      messageArgIndex = messageArgs.length;
+      commandArgIndex++;
+    } else {
+      try {
+        args[commandArg.name] = resolveArgValueOfType(
+          message,
+          messageArg,
+          commandArg.type
+        );
+      } catch (e) {
+        return {
+          success: false,
+          error: new InvalidArgValue(
+            commandArg.name,
+            messageArg,
+            commandArg.type
+          ),
+        };
+      }
+      messageArgIndex++;
+      commandArgIndex++;
+    }
   }
-  while (argIndex < commandArgs.length) {
-    const commandArg = commandArgs[argIndex];
+  while (commandArgIndex < commandArgs.length) {
+    const commandArg = commandArgs[commandArgIndex];
     if (commandArg.required) {
       return {
         success: false,
         error: new MissingRequiredArgumentError(commandArg.name),
       };
     }
-    argIndex++;
+    commandArgIndex++;
   }
 
   return {

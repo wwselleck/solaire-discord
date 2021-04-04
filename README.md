@@ -36,12 +36,23 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
   bot.start()
 ```
 
+### Example Config
+```js
+  const bot = Solaire.create({
+      token: 'abc-def';
+      commandPrelude: '!';
+      commandCooldown: 5000;
+      commands: ...
+  })
+```
+
+
 ### Commands
 Commands are probably what you think of first when thinking about chat bots. They let you type something like in a text room and have a bot user perform that action for you.
 > !ban @someAnnoyingUser
 
 
-Soliare uses a manpage-esque style of defining commands. 
+Soliare uses a manpage-esque style of defining commands.
 
 ```js
    const bot = Solaire.create({
@@ -86,6 +97,5 @@ It is heavily suggested that you assign a `commandPrelude` to you bot, which is 
     commandPrelude: '!',
    })
 ```
-
 
 
