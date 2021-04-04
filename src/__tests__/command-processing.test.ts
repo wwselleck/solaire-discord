@@ -7,7 +7,7 @@ import {
 } from "../command-processing";
 
 const MockGuildMember = () => {
-  return { id: "abc1" };
+  return { id: "abc123" };
 };
 
 const MockMessage = () => {
@@ -15,7 +15,12 @@ const MockMessage = () => {
     guild: {
       members: {
         cache: {
-          get: () => MockGuildMember(),
+          get: (id: string) => {
+            if (id === "abc123") {
+              return MockGuildMember();
+            }
+            return null;
+          },
         },
       },
     },
@@ -190,22 +195,22 @@ describe("buildExecuteArgs", () => {
       });
     });
 
-    /*
-    it("should resolve an arg with a 'Member' type as an GuildMember", () => {
-      const messageArgs = ["abc1"];
+    it("should resolve an arg with a 'Member' type as a GuildMember", () => {
+      const messageArgs = ["<@!abc123>"];
       const commandArgs = [
         {
-          name: "X",
-          type: "Int",
+          name: "user",
+          type: "Member",
         },
       ];
 
       const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
       expect((res as any).result).toEqual({
-        X: ,
+        user: {
+          id: "abc123",
+        },
       });
     });
-    */
 
     it("should return an error if an arg of type 'Int' is passed a non-int value", () => {
       const messageArgs = ["abdf"];

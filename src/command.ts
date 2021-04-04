@@ -7,7 +7,7 @@ export interface CommandArg {
   type?: string;
 }
 
-export type CommandExecuteArgs = Record<string, string>;
+export type CommandExecuteArgs = Record<string, any>;
 
 export interface CommandExecutePayload {
   message: Discord.Message;

@@ -1,6 +1,7 @@
 import Discord from "discord.js";
 import { Command } from "./command";
 import { CommandProcessingError } from "./error";
+import { getIdFromMention } from "./discord-message-utils";
 
 export class MissingRequiredArgumentError extends CommandProcessingError {
   constructor(public argName: string) {
@@ -75,7 +76,11 @@ export const resolveArgValueOfType = (
     return res;
   }
   if (argType === "Member") {
-    return message.guild!.members.cache.get(argStr);
+    const idMember = getIdFromMention(argStr);
+    if (!idMember) {
+      throw new Error("Could not parse member arg");
+    }
+    return message.guild!.members.cache.get(idMember);
   }
   throw new Error(`Invalid arg type ${argType}`);
 };
