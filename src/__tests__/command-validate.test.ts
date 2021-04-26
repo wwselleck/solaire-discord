@@ -12,6 +12,14 @@ const testRestArg = {
   name: "testRestArg",
   rest: true,
 };
+const testOptionalArg = {
+  name: "testOptionalArg",
+  required: false,
+};
+const testRequiredArg = {
+  name: "testRequiredArg",
+  required: true,
+};
 
 const createTestCommand = (props?: Partial<Command>) => {
   return {
@@ -40,5 +48,12 @@ describe("validateCommand", () => {
       args: [testArg, testArg],
     });
     expect(() => validateCommand(command)).toThrow(DuplicateArgError);
+  });
+
+  it("should throw an error if a required arg comes after an optional arg", () => {
+    const command = createTestCommand({
+      args: [testOptionalArg, testRequiredArg],
+    });
+    expect(() => validateCommand(command)).toThrow(ArgPositionError);
   });
 });

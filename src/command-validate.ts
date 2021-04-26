@@ -26,6 +26,7 @@ function validateCommandArgs(commandArgs: Command["args"]) {
     return null;
   }
 
+  let optionalArgFound = false;
   let restArgFound = false;
   let commandArgNames = new Set();
 
@@ -35,8 +36,18 @@ function validateCommandArgs(commandArgs: Command["args"]) {
         `Invalid arg ${commandArg.name} positioned after rest arg`
       );
     }
+
+    if (optionalArgFound && commandArg.required) {
+      return new ArgPositionError(
+        `Invalid required arg ${commandArg.name} positioned after optional arg`
+      );
+    }
+
     if (commandArg.rest) {
       restArgFound = true;
+    }
+    if (!commandArg.required) {
+      optionalArgFound = true;
     }
     if (commandArgNames.has(commandArg.name)) {
       throw new DuplicateArgError(commandArg.name);

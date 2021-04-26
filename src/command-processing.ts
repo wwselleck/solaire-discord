@@ -75,10 +75,10 @@ export const resolveArgValueOfType = (
     }
     return res;
   }
-  if (argType === "Member") {
+  if (argType === "GuildMember") {
     const idMember = getIdFromMention(argStr);
     if (!idMember) {
-      throw new Error("Could not parse member arg");
+      throw new Error("Could not parse guild member arg");
     }
     return message.guild!.members.cache.get(idMember);
   }

@@ -145,6 +145,36 @@ describe("buildExecuteArgs", () => {
     });
   });
 
+  it("should build args if some optional args are missing", () => {
+    const messageArgs = ["a", "b"];
+    const commandArgs = [
+      {
+        name: "X",
+        required: true,
+      },
+      {
+        name: "Y",
+        required: false,
+      },
+      {
+        name: "Z",
+        required: false,
+      },
+      {
+        name: "N",
+        required: false,
+      },
+    ];
+
+    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+
+    expect(res.success).toEqual(true);
+    expect((res as any).result).toEqual({
+      X: "a",
+      Y: "b",
+    });
+  });
+
   it("should fail if a required arg is missing", () => {
     const messageArgs = ["a"];
     const commandArgs = [
@@ -195,12 +225,12 @@ describe("buildExecuteArgs", () => {
       });
     });
 
-    it("should resolve an arg with a 'Member' type as a GuildMember", () => {
+    it("should resolve an arg with a 'GuildMember' type as a GuildMember", () => {
       const messageArgs = ["<@!abc123>"];
       const commandArgs = [
         {
           name: "user",
-          type: "Member",
+          type: "GuildMember",
         },
       ];
 
