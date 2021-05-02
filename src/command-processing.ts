@@ -5,7 +5,7 @@ import { getIdFromMention } from "./discord-message-utils";
 
 export class MissingRequiredArgumentError extends CommandProcessingError {
   constructor(public argName: string) {
-    super(`Missing required argument ${argName}`);
+    super(`Missing required argument '${argName}'`);
     Object.setPrototypeOf(this, MissingRequiredArgumentError.prototype);
   }
 }

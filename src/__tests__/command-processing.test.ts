@@ -1,31 +1,10 @@
-import Discord from "discord.js";
 import {
   parseCommandMessage,
   buildExecuteArgs,
   MissingRequiredArgumentError,
   InvalidArgValue,
 } from "../command-processing";
-
-const MockGuildMember = () => {
-  return { id: "abc123" };
-};
-
-const MockMessage = () => {
-  return ({
-    guild: {
-      members: {
-        cache: {
-          get: (id: string) => {
-            if (id === "abc123") {
-              return MockGuildMember();
-            }
-            return null;
-          },
-        },
-      },
-    },
-  } as unknown) as Discord.Message;
-};
+import { MockMessage } from "../../test/discord-mocks";
 
 describe("parseCommandMessage", () => {
   it("should correctly parse a valid command message with a prelude", () => {
