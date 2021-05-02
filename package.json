@@ -1,9 +1,11 @@
 {
   "name": "solaire-discord",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
+  "author": "wwselleck@gmail.com",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "license": "ISC",
   "scripts": {
     "build": "tsc",
     "test": "jest"
@@ -12,8 +14,9 @@
     "type": "git",
     "url": "git+https://github.com/wwselleck/solaire-discord.git"
   },
-  "author": "wwselleck@gmail.com",
-  "license": "ISC",
+  "files": [
+    "dist"
+  ],
   "bugs": {
     "url": "https://github.com/wwselleck/solaire-discord/issues"
   },
