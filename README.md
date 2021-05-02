@@ -25,23 +25,18 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
 
 ---
 
-[Install](#install)
+**[Example Bot](./example-bot)**
+
+[Install](#install) ·
+[Example Config](#example-config) ·
+[Commands](#commands)
 
 ---
 
 ## Install
 `npm install solaire-discord`
 
-## Usage
-```js
-  const bot = Solaire.create({
-    // Discord bot user token
-    token: 'abc-def'
-  })
-  bot.start()
-```
-
-### Example Config
+## Example Config
 ```js
   const bot = Solaire.create({
       token: 'abc-def';
@@ -52,7 +47,7 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
 ```
 
 
-### Commands
+## Commands
 Commands are probably what you think of first when thinking about chat bots. They let you type something like in a text room and have a bot user perform that action for you.
 > !ban @someAnnoyingUser
 
@@ -90,7 +85,7 @@ When your command is invoked in chat, the passed in `execute` function will be c
   }
 ```
 
-#### Command Prelude
+### Command Prelude
 It is heavily suggested that you assign a `commandPrelude` to you bot, which is the string that is required at the start of any command invocation.
 
 ```js
