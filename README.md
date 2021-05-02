@@ -23,6 +23,11 @@ bot.start();
 ### Discord.js
 Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord.js), and many of the objects exposed from the Solaire API will be directly from Discord.js.
 
+---
+
+[Install](#install)
+
+---
 
 ## Install
 `npm install solaire-discord`
