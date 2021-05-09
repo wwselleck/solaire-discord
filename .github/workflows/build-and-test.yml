@@ -1,8 +1,5 @@
-name: Build And Release
-on:
-  push:
-    branches:
-      - master
+name: Build And Test
+on: [pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,6 +13,3 @@ jobs:
     - run: npm install
     - run: npm run build
     - run: npm run test
-    - run: npm publish
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
