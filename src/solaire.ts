@@ -1,11 +1,10 @@
 import Discord from "discord.js";
-import { Command, parseCommandString } from "./command";
+import { Command, CommandExecuteArgs, parseCommandString } from "./command";
 import { CommandCollection } from "./command-collection";
+import { CommandArgs } from "./command-parser-types";
 import { CommandRunner } from "./command-runner";
 
-type SolaireCommands = Record<string, Pick<Command, "execute">>;
-
-interface SolaireConfig {
+interface SolaireConfig<K extends string> {
   /**
    * Discord bot user token
    */
@@ -36,16 +35,22 @@ interface SolaireConfig {
   /**
    * The commands to initialize the bot with
    */
-  commands?: SolaireCommands;
+  commands?: {
+    [P in K]: {
+      execute(
+        payload: Exclude<CommandExecuteArgs, "args"> & { args: CommandArgs<P> }
+      ): void;
+    };
+  };
 }
 
-export class Solaire {
+export class Solaire<T extends string> {
   private commands: CommandCollection;
   private runner: CommandRunner;
 
   constructor(
     private discordClient: Discord.Client,
-    private config: SolaireConfig
+    private config: SolaireConfig<T>
   ) {
     const commands =
       Object.entries(config.commands ?? {})?.map(([cmd, cmdConfig]) => {
@@ -66,7 +71,7 @@ export class Solaire {
     });
   }
 
-  static create(config: SolaireConfig) {
+  static create<K extends string>(config: SolaireConfig<K>) {
     const discordClient = new Discord.Client({
       partials: ["MESSAGE", "REACTION"],
     });
