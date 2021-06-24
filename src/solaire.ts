@@ -79,6 +79,10 @@ export class Solaire {
     this.discordClient.on("message", (message) => this._onMessage(message));
   }
 
+  ejectDiscordClient() {
+    return this.discordClient;
+  }
+
   _onMessage(message: Discord.Message) {
     this.runner.processMessage(message);
   }
