@@ -82,6 +82,10 @@ export const resolveArgValueOfType = (
     }
     return message.guild!.members.cache.get(idMember);
   }
+  if(argType === "Date") {
+    const resolvedDate = new Date(argStr);
+    return resolvedDate;
+  }
   throw new Error(`Invalid arg type ${argType}`);
 };
 

@@ -221,6 +221,19 @@ describe("buildExecuteArgs", () => {
       });
     });
 
+    it("should resolve an arg with a 'Date' type as a Date", () => {
+      const messageArgs = ["12/2/1980"];
+      const commandArgs = [
+        {
+          name: "date",
+          type: "Date",
+        },
+      ];
+
+      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+      expect((res as any).result.date.getTime()).toEqual(new Date('12/2/1980').getTime());
+    });
+
     it("should return an error if an arg of type 'Int' is passed a non-int value", () => {
       const messageArgs = ["abdf"];
       const commandArgs = [
