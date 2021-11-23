@@ -1,4 +1,7 @@
+<img width="1000px" src="./assets/solaire-banner.png" />
+
 # Solaire
+
 A simple framework with an intuitive interface for creating Discord bots using Node.
 
 ```js
