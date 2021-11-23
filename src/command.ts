@@ -18,7 +18,8 @@ export interface Command {
   name: string;
   aliases?: string[];
   args?: CommandArg[];
-  execute(payload: CommandExecutePayload): void;
+  guard?(payload: CommandExecutePayload): Promise<void> | void;
+  execute(payload: CommandExecutePayload): Promise<void> | void;
 }
 
 export function parseCommandString(cmdString: string) {

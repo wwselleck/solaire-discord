@@ -49,6 +49,18 @@ const MockCommands = () => ({
     ],
     execute: jest.fn(),
   },
+  noOneCanRun: {
+    name: 'noOneCanRun',
+    execute: jest.fn(),
+    guard: jest.fn(() => {
+      throw new Error('nope')
+    })
+  },
+  everyoneCanRun: {
+    name: 'everyoneCanRun',
+    execute: jest.fn(),
+    guard: jest.fn()
+  }
 });
 
 describe("CommandRunner", () => {
@@ -153,7 +165,7 @@ describe("CommandRunner", () => {
     });
 
     describe("cooldown", () => {
-      it("blocks command execution if a general cooldown is set and not enough time has surpassed", () => {
+      it("blocks command execution if a general cooldown is set and not enough time has surpassed", async () => {
         const startTime = 1349852318000;
         jest.setSystemTime(startTime);
 
@@ -164,13 +176,13 @@ describe("CommandRunner", () => {
           }
         );
 
-        runner.processMessage(MockMessage("standard"));
+        await runner.processMessage(MockMessage("standard"));
         expect(mockCommands.standard.execute).toHaveBeenCalledTimes(1);
-        runner.processMessage(MockMessage("standard"));
+        await runner.processMessage(MockMessage("standard"));
         expect(mockCommands.standard.execute).toHaveBeenCalledTimes(1);
       });
 
-      it("allows command execution if general cooldown is set and enough time has surpassed", () => {
+      it("allows command execution if general cooldown is set and enough time has surpassed", async () => {
         const cooldown = 5000;
 
         const startTime = 1349852318000;
@@ -183,16 +195,39 @@ describe("CommandRunner", () => {
           }
         );
 
-        runner.processMessage(MockMessage("standard"));
+        await runner.processMessage(MockMessage("standard"));
         expect(mockCommands.standard.execute).toHaveBeenCalledTimes(1);
 
         jest.setSystemTime(startTime + cooldown - 1);
-        runner.processMessage(MockMessage("standard"));
+        await runner.processMessage(MockMessage("standard"));
         expect(mockCommands.standard.execute).toHaveBeenCalledTimes(1);
 
         jest.setSystemTime(startTime + cooldown);
-        runner.processMessage(MockMessage("standard"));
+        await runner.processMessage(MockMessage("standard"));
         expect(mockCommands.standard.execute).toHaveBeenCalledTimes(2);
+      });
+    });
+    describe('guard', () => {
+      it('calls guard if provided', () => {
+        const runner = new CommandRunner(
+          new CommandCollection([mockCommands.noOneCanRun])
+        );
+        expect(runner.processMessage(MockMessage("noOneCanRun"))).rejects.toThrow();
+        expect(mockCommands.noOneCanRun.guard).toHaveBeenCalled();
+      });
+
+      it('throws if guard throws', () => {
+        const runner = new CommandRunner(
+          new CommandCollection([mockCommands.noOneCanRun])
+        );
+        expect(runner.processMessage(MockMessage("noOneCanRun"))).rejects.toThrow();
+      });
+
+      it('does not throw if guard exists but does not throw', () => {
+        const runner = new CommandRunner(
+          new CommandCollection([mockCommands.everyoneCanRun])
+        );
+        runner.processMessage(MockMessage("everyoneCanRun"));
       });
     });
   });

@@ -42,7 +42,7 @@ export class CommandRunner {
     this.history = new CommandRunHistory();
   }
 
-  processMessage(message: Discord.Message) {
+  async processMessage(message: Discord.Message) {
     const parsedCommandMessage = parseCommandMessage(
       message.content,
       this.options?.prelude
@@ -86,7 +86,14 @@ export class CommandRunner {
       return;
     }
 
-    calledCommand.execute({ args: executeArgs.result, message });
+    const payload = { args: executeArgs.result, message };
+
+    if(calledCommand.guard){
+      // Will throw if user cannot execute command
+      await calledCommand.guard(payload);
+    }
+
+    await calledCommand.execute(payload);
     this.history.addRun({
       command: calledCommand,
       date: new Date(),
