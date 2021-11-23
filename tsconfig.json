@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     "target": "es5",
+    "lib": ["esnext"],
     "declaration": true,
     "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
     "outDir": "dist",
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*"]
 }

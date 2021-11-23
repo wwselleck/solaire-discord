@@ -22,17 +22,14 @@
   },
   "homepage": "https://github.com/wwselleck/solaire-discord#readme",
   "dependencies": {
-    "discord.js": "^12.5.1"
+    "discord.js": "^12.5.1",
   },
   "devDependencies": {
-    "@babel/core": "^7.12.16",
-    "@babel/preset-env": "^7.12.16",
-    "@babel/preset-typescript": "^7.12.16",
-    "@types/jest": "^26.0.20",
+    "@types/jest": "^27.0.3",
     "@types/node": "^14.14.28",
     "@types/ws": "^7.4.0",
-    "babel-jest": "^26.6.3",
-    "jest": "^26.6.3",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.5"
   }

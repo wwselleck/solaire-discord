@@ -4,6 +4,7 @@ export class ArgPositionError extends Error {
   constructor(msg: string) {
     super(msg);
     this.name = "ArgPositionError";
+    Object.setPrototypeOf(this, ArgPositionError.prototype);
   }
 }
 
@@ -11,6 +12,7 @@ export class DuplicateArgError extends Error {
   constructor(argName: string) {
     super(`Duplicate arg name ${argName}`);
     this.name = "DuplicateArgError";
+    Object.setPrototypeOf(this, DuplicateArgError.prototype);
   }
 }
 
