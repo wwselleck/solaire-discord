@@ -1,5 +1,5 @@
-import { Command } from "./command";
-import { validateCommand } from "./command-validate";
+import { Command } from './command';
+import { validateCommand } from './command-validate';
 
 export class CommandCollection {
   constructor(private commands: Command[]) {
@@ -14,7 +14,7 @@ export class CommandCollection {
     for (const command of this.commands) {
       const keywordMatchesCommand = [
         command.name,
-        ...(command.aliases ?? []),
+        ...(command.aliases ?? [])
       ].includes(keyword);
       if (keywordMatchesCommand) {
         return command;

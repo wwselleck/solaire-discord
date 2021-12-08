@@ -1,8 +1,8 @@
-import Discord from "discord.js";
-import { Command } from "./command";
-import { CommandCollection } from "./command-collection";
-import { parseCommandMessage, buildExecuteArgs } from "./command-processing";
-import { CommandProcessingError } from "./error";
+import Discord from 'discord.js';
+import { Command } from './command';
+import { CommandCollection } from './command-collection';
+import { parseCommandMessage, buildExecuteArgs } from './command-processing';
+import { CommandProcessingError } from './error';
 
 const replyWithError = (message: Discord.Message, error: Error) => {
   message.reply(error.message);
@@ -88,7 +88,7 @@ export class CommandRunner {
 
     const payload = { args: executeArgs.result, message };
 
-    if(calledCommand.guard){
+    if (calledCommand.guard) {
       // Will throw if user cannot execute command
       await calledCommand.guard(payload);
     }
@@ -96,7 +96,7 @@ export class CommandRunner {
     await calledCommand.execute(payload);
     this.history.addRun({
       command: calledCommand,
-      date: new Date(),
+      date: new Date()
     });
   }
 }

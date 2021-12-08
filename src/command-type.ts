@@ -1,1 +1,1 @@
-export type CommandType = "Number" | "Member";
+export type CommandType = 'Number' | 'Member';

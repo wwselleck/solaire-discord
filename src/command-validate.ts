@@ -1,9 +1,9 @@
-import { Command } from "./command";
+import { Command } from './command';
 
 export class ArgPositionError extends Error {
   constructor(msg: string) {
     super(msg);
-    this.name = "ArgPositionError";
+    this.name = 'ArgPositionError';
     Object.setPrototypeOf(this, ArgPositionError.prototype);
   }
 }
@@ -11,7 +11,7 @@ export class ArgPositionError extends Error {
 export class DuplicateArgError extends Error {
   constructor(argName: string) {
     super(`Duplicate arg name ${argName}`);
-    this.name = "DuplicateArgError";
+    this.name = 'DuplicateArgError';
     Object.setPrototypeOf(this, DuplicateArgError.prototype);
   }
 }
@@ -23,14 +23,14 @@ export function validateCommand(command: Command) {
   }
 }
 
-function validateCommandArgs(commandArgs: Command["args"]) {
+function validateCommandArgs(commandArgs: Command['args']) {
   if (!commandArgs) {
     return null;
   }
 
   let optionalArgFound = false;
   let restArgFound = false;
-  let commandArgNames = new Set();
+  const commandArgNames = new Set();
 
   for (const commandArg of commandArgs) {
     if (restArgFound) {

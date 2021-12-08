@@ -1,9 +1,9 @@
-import Discord from "discord.js";
-import { Command, parseCommandString } from "./command";
-import { CommandCollection } from "./command-collection";
-import { CommandRunner } from "./command-runner";
+import Discord from 'discord.js';
+import { Command, parseCommandString } from './command';
+import { CommandCollection } from './command-collection';
+import { CommandRunner } from './command-runner';
 
-type SolaireCommands = Record<string, Pick<Command, "execute">>;
+type SolaireCommands = Record<string, Pick<Command, 'execute'>>;
 
 interface SolaireConfig {
   /**
@@ -54,7 +54,7 @@ export class Solaire {
           name,
           aliases,
           args,
-          ...cmdConfig,
+          ...cmdConfig
         };
       }) ?? [];
 
@@ -62,13 +62,13 @@ export class Solaire {
 
     this.runner = new CommandRunner(this.commands, {
       prelude: config.commandPrelude,
-      cooldown: config.commandCooldown,
+      cooldown: config.commandCooldown
     });
   }
 
   static create(config: SolaireConfig) {
     const discordClient = new Discord.Client({
-      partials: ["MESSAGE", "REACTION"],
+      partials: ['MESSAGE', 'REACTION']
     });
 
     return new Solaire(discordClient, config);
@@ -76,7 +76,7 @@ export class Solaire {
 
   start() {
     this.discordClient.login(this.config.token);
-    this.discordClient.on("message", (message) => this._onMessage(message));
+    this.discordClient.on('message', (message) => this._onMessage(message));
   }
 
   ejectDiscordClient() {

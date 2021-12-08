@@ -8,7 +8,8 @@
   "license": "ISC",
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "lint": "which eslint && eslint --fix src"
   },
   "repository": {
     "type": "git",
@@ -28,7 +29,13 @@
     "@types/jest": "^27.0.3",
     "@types/node": "^14.14.28",
     "@types/ws": "^7.4.0",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "eslint": "^8.3.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "jest": "^27.3.1",
+    "prettier": "^2.4.1",
     "ts-jest": "^27.0.7",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.5"

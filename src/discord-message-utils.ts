@@ -2,10 +2,10 @@
 export function getIdFromMention(mention: string) {
   if (!mention) return;
 
-  if (mention.startsWith("<@") && mention.endsWith(">")) {
+  if (mention.startsWith('<@') && mention.endsWith('>')) {
     let mentionWithoutSurrounding = mention.slice(2, -1);
 
-    if (mentionWithoutSurrounding.startsWith("!")) {
+    if (mentionWithoutSurrounding.startsWith('!')) {
       mentionWithoutSurrounding = mentionWithoutSurrounding.slice(1);
     }
 

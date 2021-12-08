@@ -1,7 +1,7 @@
-import Discord from "discord.js";
-import { Command } from "./command";
-import { CommandProcessingError } from "./error";
-import { getIdFromMention } from "./discord-message-utils";
+import Discord from 'discord.js';
+import { Command } from './command';
+import { CommandProcessingError } from './error';
+import { getIdFromMention } from './discord-message-utils';
 
 export class MissingRequiredArgumentError extends CommandProcessingError {
   constructor(public argName: string) {
@@ -24,7 +24,7 @@ export class InvalidArgValue extends CommandProcessingError {
 }
 
 function escapeRegex(str: string) {
-  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+  return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
 
 /**
@@ -41,14 +41,14 @@ function escapeRegex(str: string) {
  * Return: [!trivia, c]
  *
  */
-const extractCommandTokens = (prelude: string = "", message: string) => {
+const extractCommandTokens = (prelude = '', message: string) => {
   if (!message.startsWith(prelude)) {
     return [];
   }
 
   // Remove the prelude
-  let re = new RegExp(`^(${escapeRegex(prelude)})`);
-  let messageWithoutPrelude = message.replace(re, "");
+  const re = new RegExp(`^(${escapeRegex(prelude)})`);
+  const messageWithoutPrelude = message.replace(re, '');
 
   return messageWithoutPrelude.match(/\S+/g) ?? [];
 };
@@ -61,28 +61,28 @@ export const resolveArgValueOfType = (
   if (!argType) {
     return argStr;
   }
-  if (argType === "Int") {
+  if (argType === 'Int') {
     const res = parseInt(argStr);
     if (Number.isNaN(res)) {
-      throw new Error("Could not parse int");
+      throw new Error('Could not parse int');
     }
     return res;
   }
-  if (argType === "Float") {
+  if (argType === 'Float') {
     const res = parseFloat(argStr);
     if (Number.isNaN(res)) {
-      throw new Error("Could not parse float");
+      throw new Error('Could not parse float');
     }
     return res;
   }
-  if (argType === "GuildMember") {
+  if (argType === 'GuildMember') {
     const idMember = getIdFromMention(argStr);
     if (!idMember) {
-      throw new Error("Could not parse guild member arg");
+      throw new Error('Could not parse guild member arg');
     }
     return message.guild!.members.cache.get(idMember);
   }
-  if(argType === "Date") {
+  if (argType === 'Date') {
     const resolvedDate = new Date(argStr);
     return resolvedDate;
   }
@@ -101,7 +101,7 @@ export const parseCommandMessage = (
   const tokens = extractCommandTokens(prelude, message);
   if (tokens.length === 0) {
     return {
-      success: false,
+      success: false
     };
   }
 
@@ -111,15 +111,15 @@ export const parseCommandMessage = (
     success: true,
     result: {
       name: nameToken,
-      args: argsTokens,
-    },
+      args: argsTokens
+    }
   };
 };
 
 export const buildExecuteArgs = (
   message: Discord.Message,
-  messageArgs: ParsedCommandMessage["args"],
-  commandArgs?: Command["args"]
+  messageArgs: ParsedCommandMessage['args'],
+  commandArgs?: Command['args']
 ):
   | { success: false; error: Error }
   | { success: true; result: Record<string, any> } => {
@@ -138,7 +138,7 @@ export const buildExecuteArgs = (
     const commandArg = commandArgs[commandArgIndex];
 
     if (commandArg.rest) {
-      args[commandArg.name] = messageArgs.slice(messageArgIndex).join(" ");
+      args[commandArg.name] = messageArgs.slice(messageArgIndex).join(' ');
       messageArgIndex = messageArgs.length;
       commandArgIndex++;
     } else {
@@ -155,7 +155,7 @@ export const buildExecuteArgs = (
             commandArg.name,
             messageArg,
             commandArg.type
-          ),
+          )
         };
       }
       messageArgIndex++;
@@ -167,7 +167,7 @@ export const buildExecuteArgs = (
     if (commandArg.required) {
       return {
         success: false,
-        error: new MissingRequiredArgumentError(commandArg.name),
+        error: new MissingRequiredArgumentError(commandArg.name)
       };
     }
     commandArgIndex++;
@@ -175,6 +175,6 @@ export const buildExecuteArgs = (
 
   return {
     success: true,
-    result: args,
+    result: args
   };
 };
