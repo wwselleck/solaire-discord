@@ -1,27 +1,7 @@
 import Discord from 'discord.js';
 import { Command } from './command';
-import { CommandProcessingError } from './error';
+import { MissingRequiredArgError, InvalidArgValueError } from './error';
 import { getIdFromMention } from './discord-message-utils';
-
-export class MissingRequiredArgumentError extends CommandProcessingError {
-  constructor(public argName: string) {
-    super(`Missing required argument '${argName}'`);
-    Object.setPrototypeOf(this, MissingRequiredArgumentError.prototype);
-  }
-}
-
-export class InvalidArgValue extends CommandProcessingError {
-  constructor(
-    public argName: string,
-    public argStr: string,
-    public argType?: string
-  ) {
-    super(
-      `Invalid value ${argStr} provided for arg ${argName} of type ${argType}`
-    );
-    Object.setPrototypeOf(this, InvalidArgValue.prototype);
-  }
-}
 
 function escapeRegex(str: string) {
   return str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -119,23 +99,21 @@ export const parseCommandMessage = (
 export const buildExecuteArgs = (
   message: Discord.Message,
   messageArgs: ParsedCommandMessage['args'],
-  commandArgs?: Command['args']
-):
-  | { success: false; error: Error }
-  | { success: true; result: Record<string, any> } => {
-  if (!commandArgs) {
-    return { success: true, result: {} };
+  command: Command
+): Record<string, any> => {
+  if (!command.args) {
+    return {};
   }
   const args = {} as Record<string, any>;
 
   let commandArgIndex = 0;
   let messageArgIndex = 0;
   while (
-    commandArgIndex < commandArgs.length &&
+    commandArgIndex < command.args.length &&
     messageArgIndex < messageArgs.length
   ) {
     const messageArg = messageArgs[messageArgIndex];
-    const commandArg = commandArgs[commandArgIndex];
+    const commandArg = command.args[commandArgIndex];
 
     if (commandArg.rest) {
       args[commandArg.name] = messageArgs.slice(messageArgIndex).join(' ');
@@ -149,32 +127,28 @@ export const buildExecuteArgs = (
           commandArg.type
         );
       } catch (e) {
-        return {
-          success: false,
-          error: new InvalidArgValue(
-            commandArg.name,
-            messageArg,
-            commandArg.type
-          )
-        };
+        throw new InvalidArgValueError({
+          command,
+          commandArg,
+          providedValue: messageArg,
+          invokingMessage: message
+        });
       }
       messageArgIndex++;
       commandArgIndex++;
     }
   }
-  while (commandArgIndex < commandArgs.length) {
-    const commandArg = commandArgs[commandArgIndex];
+  while (commandArgIndex < command.args.length) {
+    const commandArg = command.args[commandArgIndex];
     if (commandArg.required) {
-      return {
-        success: false,
-        error: new MissingRequiredArgumentError(commandArg.name)
-      };
+      throw new MissingRequiredArgError({
+        command,
+        commandArg,
+        invokingMessage: message
+      });
     }
     commandArgIndex++;
   }
 
-  return {
-    success: true,
-    result: args
-  };
+  return args;
 };

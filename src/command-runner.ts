@@ -2,11 +2,7 @@ import Discord from 'discord.js';
 import { Command } from './command';
 import { CommandCollection } from './command-collection';
 import { parseCommandMessage, buildExecuteArgs } from './command-processing';
-import { CommandProcessingError } from './error';
-
-const replyWithError = (message: Discord.Message, error: Error) => {
-  message.reply(error.message);
-};
+import { UnhandledCommandExecutionError } from './error';
 
 interface CommandRunLog {
   command: Command;
@@ -76,24 +72,25 @@ export class CommandRunner {
     const executeArgs = buildExecuteArgs(
       message,
       parsedCommandMessage.result.args,
-      calledCommand.args
+      calledCommand
     );
 
-    if (!executeArgs.success) {
-      if (executeArgs.error instanceof CommandProcessingError) {
-        replyWithError(message, executeArgs.error);
-      }
-      return;
-    }
-
-    const payload = { args: executeArgs.result, message };
+    const payload = { args: executeArgs, message };
 
     if (calledCommand.guard) {
       // Will throw if user cannot execute command
       await calledCommand.guard(payload);
     }
 
-    await calledCommand.execute(payload);
+    try {
+      await calledCommand.execute(payload);
+    } catch (e) {
+      throw new UnhandledCommandExecutionError({
+        command: calledCommand,
+        unhandledError: e,
+        invokingMessage: message
+      });
+    }
     this.history.addRun({
       command: calledCommand,
       date: new Date()

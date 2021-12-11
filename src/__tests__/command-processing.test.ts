@@ -1,10 +1,15 @@
-import {
-  parseCommandMessage,
-  buildExecuteArgs,
-  MissingRequiredArgumentError,
-  InvalidArgValue
-} from '../command-processing';
+import { parseCommandMessage, buildExecuteArgs } from '../command-processing';
+import { Command } from '../command';
+import { MissingRequiredArgError, InvalidArgValueError } from '../error';
 import { MockMessage } from '../../test/discord-mocks';
+
+const CommandWithArgs = (args: Command['args']): Command => {
+  return {
+    name: 'test',
+    args,
+    execute() {}
+  };
+};
 
 describe('parseCommandMessage', () => {
   it('should correctly parse a valid command message with a prelude', () => {
@@ -71,10 +76,13 @@ describe('buildExecuteArgs', () => {
       }
     ];
 
-    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+    const res = buildExecuteArgs(
+      MockMessage(),
+      messageArgs,
+      CommandWithArgs(commandArgs)
+    );
 
-    expect(res.success).toEqual(true);
-    expect((res as any).result).toEqual({
+    expect(res).toEqual({
       X: 'a',
       Y: 'b'
     });
@@ -94,10 +102,13 @@ describe('buildExecuteArgs', () => {
       }
     ];
 
-    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+    const res = buildExecuteArgs(
+      MockMessage(),
+      messageArgs,
+      CommandWithArgs(commandArgs)
+    );
 
-    expect(res.success).toEqual(true);
-    expect((res as any).result).toEqual({
+    expect(res).toEqual({
       user: 'weston',
       text: 'this is a test'
     });
@@ -116,10 +127,13 @@ describe('buildExecuteArgs', () => {
       }
     ];
 
-    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+    const res = buildExecuteArgs(
+      MockMessage(),
+      messageArgs,
+      CommandWithArgs(commandArgs)
+    );
 
-    expect(res.success).toEqual(true);
-    expect((res as any).result).toEqual({
+    expect(res).toEqual({
       X: 'a'
     });
   });
@@ -145,10 +159,13 @@ describe('buildExecuteArgs', () => {
       }
     ];
 
-    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
+    const res = buildExecuteArgs(
+      MockMessage(),
+      messageArgs,
+      CommandWithArgs(commandArgs)
+    );
 
-    expect(res.success).toEqual(true);
-    expect((res as any).result).toEqual({
+    expect(res).toEqual({
       X: 'a',
       Y: 'b'
     });
@@ -167,11 +184,16 @@ describe('buildExecuteArgs', () => {
       }
     ];
 
-    const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
-
-    expect(res.success).toEqual(false);
-    expect((res as any).error).toBeInstanceOf(MissingRequiredArgumentError);
-    expect((res as any).error.argName).toEqual('Y');
+    try {
+      buildExecuteArgs(
+        MockMessage(),
+        messageArgs,
+        CommandWithArgs(commandArgs)
+      );
+    } catch (e) {
+      expect(e).toBeInstanceOf(MissingRequiredArgError);
+      expect(e.commandArg.name).toEqual('Y');
+    }
   });
 
   describe('type resolving', () => {
@@ -183,8 +205,12 @@ describe('buildExecuteArgs', () => {
         }
       ];
 
-      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
-      expect((res as any).result).toEqual({
+      const res = buildExecuteArgs(
+        MockMessage(),
+        messageArgs,
+        CommandWithArgs(commandArgs)
+      );
+      expect(res).toEqual({
         X: 'abc'
       });
     });
@@ -198,8 +224,12 @@ describe('buildExecuteArgs', () => {
         }
       ];
 
-      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
-      expect((res as any).result).toEqual({
+      const res = buildExecuteArgs(
+        MockMessage(),
+        messageArgs,
+        CommandWithArgs(commandArgs)
+      );
+      expect(res).toEqual({
         X: 2
       });
     });
@@ -213,8 +243,12 @@ describe('buildExecuteArgs', () => {
         }
       ];
 
-      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
-      expect((res as any).result).toEqual({
+      const res = buildExecuteArgs(
+        MockMessage(),
+        messageArgs,
+        CommandWithArgs(commandArgs)
+      );
+      expect(res).toEqual({
         user: {
           id: 'abc123'
         }
@@ -230,10 +264,12 @@ describe('buildExecuteArgs', () => {
         }
       ];
 
-      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
-      expect((res as any).result.date.getTime()).toEqual(
-        new Date('12/2/1980').getTime()
+      const res = buildExecuteArgs(
+        MockMessage(),
+        messageArgs,
+        CommandWithArgs(commandArgs)
       );
+      expect(res.date.getTime()).toEqual(new Date('12/2/1980').getTime());
     });
 
     it("should return an error if an arg of type 'Int' is passed a non-int value", () => {
@@ -245,9 +281,13 @@ describe('buildExecuteArgs', () => {
         }
       ];
 
-      const res = buildExecuteArgs(MockMessage(), messageArgs, commandArgs);
-      expect(res.success).toEqual(false);
-      expect((res as any).error instanceof InvalidArgValue).toEqual(true);
+      expect(() =>
+        buildExecuteArgs(
+          MockMessage(),
+          messageArgs,
+          CommandWithArgs(commandArgs)
+        )
+      ).toThrow(InvalidArgValueError);
     });
   });
 });

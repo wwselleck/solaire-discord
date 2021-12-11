@@ -1,6 +1,7 @@
 import Discord from 'discord.js';
 import { CommandRunner } from '../command-runner';
 import { CommandCollection } from '../command-collection';
+import { MissingRequiredArgError, InvalidArgValueError } from '../error';
 
 jest.useFakeTimers('modern');
 
@@ -143,23 +144,25 @@ describe('CommandRunner', () => {
         );
       });
 
-      it('replies with a message if a required arg is missing', () => {
+      it('throws if a required arg is missing', async () => {
         const runner = new CommandRunner(
           new CommandCollection([mockCommands.oneRequiredArg])
         );
         const msg = MockMessage('oneRequiredArg');
-        runner.processMessage(msg);
-        expect(msg.reply).toHaveBeenCalled();
+        await expect(runner.processMessage(msg)).rejects.toThrow(
+          MissingRequiredArgError
+        );
         expect(mockCommands.oneRequiredArg.execute).not.toHaveBeenCalled();
       });
 
-      it('replies with a message if one of multiple required args is missing', () => {
+      it('throws if one of multiple required args is missing', async () => {
         const runner = new CommandRunner(
           new CommandCollection([mockCommands.twoRequiredArgs])
         );
         const msg = MockMessage('twoRequiredArgs test1');
-        runner.processMessage(msg);
-        expect(msg.reply).toHaveBeenCalled();
+        await expect(runner.processMessage(msg)).rejects.toThrow(
+          MissingRequiredArgError
+        );
         expect(mockCommands.twoRequiredArgs.execute).not.toHaveBeenCalled();
       });
     });
@@ -208,11 +211,11 @@ describe('CommandRunner', () => {
       });
     });
     describe('guard', () => {
-      it('calls guard if provided', () => {
+      it('calls guard if provided', async () => {
         const runner = new CommandRunner(
           new CommandCollection([mockCommands.noOneCanRun])
         );
-        expect(
+        await expect(
           runner.processMessage(MockMessage('noOneCanRun'))
         ).rejects.toThrow();
         expect(mockCommands.noOneCanRun.guard).toHaveBeenCalled();

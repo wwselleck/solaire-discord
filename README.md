@@ -55,13 +55,15 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
 
 
 ## Commands
-Commands are probably what you think of first when thinking about chat bots. They let you type something like in a text room and have a bot user perform that action for you.
+Commands are probably what you think of first when thinking about chat bots. They let you type something like
+
+> !ban @someAnnoyingUser mean
+
+in a text room and have a bot user perform that action for you.
 
 Solaire lets you define your bot's commands by writing out a definition string that maps very closely to how you'd actually use the command in your Discord server.
 
 To demonstrate how to define commands in Solaire, we'll build a command for banning users from your server, starting with the simplest possible definition, and working up to a more complex definition using the ease-of-use options that Solaire provides.
-
-
 ```js
    const bot = Solaire.create({
     ...
@@ -301,3 +303,31 @@ The available argument types are:
 
 If no argument type is provided, the arg is just passed through as a string.
 
+### Error Handling
+
+When an error is thrown during the processing of a command, the `onError` function is called, if provided in your Solaire config
+
+```js
+const bot = Solaire.create({
+    ...
+    onError(error) {
+        ...
+    }
+});
+```
+
+Many different kinds of errors can get thrown, but all share some common properties
+- **invokingMessage : Discord.js::Message** - This is the message that triggered the error
+- **command : Solaire::Command** - The command that was running/attempted to be ran
+
+#### UnhandledCommandExecutionError
+This will get thrown when an error is thrown from a command's execute function.
+
+**Properties**
+- **unhandledError : Error** - The unhandled error that was thrown from a command's `execute` function
+
+#### MissingRequiredArg
+This will get thrown when an error is thrown from a command's execute function.
+
+**Properties**
+- ** : Error** - The unhandled error that was thrown from a command's `execute` function

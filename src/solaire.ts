@@ -2,6 +2,7 @@ import Discord from 'discord.js';
 import { Command, parseCommandString } from './command';
 import { CommandCollection } from './command-collection';
 import { CommandRunner } from './command-runner';
+import { SolaireError } from './error';
 
 type SolaireCommands = Record<string, Pick<Command, 'execute'>>;
 
@@ -37,6 +38,8 @@ interface SolaireConfig {
    * The commands to initialize the bot with
    */
   commands?: SolaireCommands;
+
+  onError?: (err: SolaireError) => void;
 }
 
 export class Solaire {
@@ -83,7 +86,15 @@ export class Solaire {
     return this.discordClient;
   }
 
-  _onMessage(message: Discord.Message) {
-    this.runner.processMessage(message);
+  async _onMessage(message: Discord.Message) {
+    try {
+      await this.runner.processMessage(message);
+    } catch (e) {
+      if (this.config.onError) {
+        this.config.onError(e);
+        return;
+      }
+      throw e;
+    }
   }
 }

@@ -1,29 +1,28 @@
-import Discord from "discord.js";
-import EventEmitter from "events";
+import Discord from 'discord.js';
+import EventEmitter from 'events';
 
 export const MockGuildMember = () => {
-  return { id: "abc123" };
+  return { id: 'abc123' };
 };
 
-export const MockMessage = () => {
-  return ({
+export const MockMessage = (content = '') => {
+  return {
+    content,
     guild: {
       members: {
         cache: {
           get: (id: string) => {
-            if (id === "abc123") {
+            if (id === 'abc123') {
               return MockGuildMember();
             }
             return null;
-          },
-        },
-      },
-    },
-  } as unknown) as Discord.Message;
+          }
+        }
+      }
+    }
+  } as unknown as Discord.Message;
 };
 
-class _MockDiscordClient extends EventEmitter {
+export class MockDiscordClient extends EventEmitter {
   login() {}
 }
-
-export const MockDiscordClient = (_MockDiscordClient as unknown) as Discord.Client;
