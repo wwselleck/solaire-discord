@@ -4,7 +4,7 @@ import { CommandCollection } from './command-collection';
 import { CommandRunner } from './command-runner';
 import { SolaireError } from './error';
 
-type SolaireCommands = Record<string, Pick<Command, 'execute'>>;
+type SolaireCommands = Record<string, Pick<Command, 'execute' | 'guard'>>;
 
 interface SolaireConfig {
   /**
@@ -94,7 +94,7 @@ export class Solaire {
         this.config.onError(e);
         return;
       }
-      throw e;
+      console.error(e);
     }
   }
 }

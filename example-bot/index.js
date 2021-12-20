@@ -104,6 +104,20 @@ const bot = Solaire.create({
         }
         message.channel.send(result);
       }
+    },
+    'closeFarm|close': {
+      async execute({ message }) {
+        message.channel.send('The farm is now closed!');
+      },
+      async guard({ message }) {
+        if (
+          !message.member.roles.cache.some(
+            (r) => r.name.toLowerCase() === 'farmer'
+          )
+        ) {
+          throw new Error('You have to be a farmer to close the farm!');
+        }
+      }
     }
   }
 });
