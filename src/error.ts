@@ -82,4 +82,6 @@ export class InvalidArgValueError extends CommandProcessingError {
   }
 }
 
-export type SolaireError = CommandProcessingError;
+export type SolaireError =
+  | CommandProcessingError
+  | UnhandledCommandExecutionError;

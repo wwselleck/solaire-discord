@@ -2,7 +2,7 @@ import Discord from 'discord.js';
 import { Command, parseCommandString } from './command';
 import { CommandCollection } from './command-collection';
 import { CommandRunner } from './command-runner';
-import { SolaireError } from './error';
+import { SolaireError, UnhandledCommandExecutionError } from './error';
 
 type SolaireCommands = Record<string, Pick<Command, 'execute' | 'guard'>>;
 
@@ -92,9 +92,10 @@ export class Solaire {
     } catch (e) {
       if (this.config.onError) {
         this.config.onError(e);
-        return;
       }
-      console.error(e);
+      if (e instanceof UnhandledCommandExecutionError) {
+        console.error(e);
+      }
     }
   }
 }
