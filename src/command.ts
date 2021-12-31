@@ -14,11 +14,16 @@ export interface CommandExecutePayload {
   args: CommandExecuteArgs;
 }
 
+export interface GuardPayload extends CommandExecutePayload {
+  ok(): void;
+  error(err?: any): void;
+}
+
 export interface Command {
   name: string;
   aliases?: string[];
   args?: CommandArg[];
-  guard?(payload: CommandExecutePayload): Promise<void> | void;
+  guard?(payload: GuardPayload): Promise<void> | void;
   execute(payload: CommandExecutePayload): Promise<void> | void;
 }
 

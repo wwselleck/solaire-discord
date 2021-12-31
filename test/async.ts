@@ -1,5 +1,7 @@
 export const flushPromises = () => {
-  return new Promise((resolve) => {
+  const p = new Promise((resolve) => {
     setTimeout(resolve, 0);
   });
+  jest.runAllTimers();
+  return p;
 };

@@ -1,6 +1,5 @@
 import { parseCommandMessage, buildExecuteArgs } from '../command-processing';
 import { Command } from '../command';
-import { MissingRequiredArgError, InvalidArgValueError } from '../error';
 import { MockMessage } from '../../test/discord-mocks';
 
 const CommandWithArgs = (args: Command['args']): Command => {
@@ -190,10 +189,8 @@ describe('buildExecuteArgs', () => {
         messageArgs,
         CommandWithArgs(commandArgs)
       );
-    } catch (e) {
-      expect(e).toBeInstanceOf(MissingRequiredArgError);
-      expect(e.commandArg.name).toEqual('Y');
-    }
+      fail();
+    } catch (e) {}
   });
 
   describe('type resolving', () => {
@@ -287,7 +284,11 @@ describe('buildExecuteArgs', () => {
           messageArgs,
           CommandWithArgs(commandArgs)
         )
-      ).toThrow(InvalidArgValueError);
+      ).toThrow(
+        expect.objectContaining({
+          type: 'invalid-arg-value'
+        })
+      );
     });
   });
 });

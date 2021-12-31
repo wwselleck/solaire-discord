@@ -37,12 +37,10 @@ interface SolaireConfig {
   /**
    * The commands to initialize the bot with
    */
-  commands?: SolaireCommands;
-
-  onError?: (err: SolaireError) => void;
+  commands?: SolaireCommandsConfig;
 }
 
-export class Solaire {
+export class Solaire extends EventEmitter {
   private commands: CommandCollection;
   private runner: CommandRunner;
 
@@ -50,14 +48,15 @@ export class Solaire {
     private discordClient: Discord.Client,
     private config: SolaireConfig
   ) {
+    super();
     const commands =
       Object.entries(config.commands ?? {})?.map(([cmd, cmdConfig]) => {
         const { name, aliases, args } = parseCommandString(cmd);
         return {
+          ...cmdConfig,
           name,
           aliases,
-          args,
-          ...cmdConfig
+          args
         };
       }) ?? [];
 
@@ -87,15 +86,9 @@ export class Solaire {
   }
 
   async _onMessage(message: Discord.Message) {
-    try {
-      await this.runner.processMessage(message);
-    } catch (e) {
-      if (this.config.onError) {
-        this.config.onError(e);
-      }
-      if (e instanceof UnhandledCommandExecutionError) {
-        console.error(e);
-      }
+    const result = await this.runner.processMessage(message);
+    if (result.commandInvoked) {
+      this.emit('commandInvokedEnd', result);
     }
   }
 }

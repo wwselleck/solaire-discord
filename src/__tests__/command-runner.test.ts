@@ -1,7 +1,6 @@
 import Discord from 'discord.js';
 import { CommandRunner } from '../command-runner';
 import { CommandCollection } from '../command-collection';
-import { MissingRequiredArgError, InvalidArgValueError } from '../error';
 
 jest.useFakeTimers('modern');
 
@@ -53,8 +52,8 @@ const MockCommands = () => ({
   noOneCanRun: {
     name: 'noOneCanRun',
     execute: jest.fn(),
-    guard: jest.fn(() => {
-      throw new Error('nope');
+    guard: jest.fn(({ error }) => {
+      error('nope');
     })
   },
   everyoneCanRun: {
@@ -143,28 +142,6 @@ describe('CommandRunner', () => {
           })
         );
       });
-
-      it('throws if a required arg is missing', async () => {
-        const runner = new CommandRunner(
-          new CommandCollection([mockCommands.oneRequiredArg])
-        );
-        const msg = MockMessage('oneRequiredArg');
-        await expect(runner.processMessage(msg)).rejects.toThrow(
-          MissingRequiredArgError
-        );
-        expect(mockCommands.oneRequiredArg.execute).not.toHaveBeenCalled();
-      });
-
-      it('throws if one of multiple required args is missing', async () => {
-        const runner = new CommandRunner(
-          new CommandCollection([mockCommands.twoRequiredArgs])
-        );
-        const msg = MockMessage('twoRequiredArgs test1');
-        await expect(runner.processMessage(msg)).rejects.toThrow(
-          MissingRequiredArgError
-        );
-        expect(mockCommands.twoRequiredArgs.execute).not.toHaveBeenCalled();
-      });
     });
 
     describe('cooldown', () => {
@@ -210,6 +187,7 @@ describe('CommandRunner', () => {
         expect(mockCommands.standard.execute).toHaveBeenCalledTimes(2);
       });
     });
+
     describe('guard', () => {
       it('calls guard if provided', async () => {
         const runner = new CommandRunner(
@@ -217,7 +195,7 @@ describe('CommandRunner', () => {
         );
         await expect(
           runner.processMessage(MockMessage('noOneCanRun'))
-        ).rejects.toThrow();
+        ).resolves.toEqual(expect.anything());
         expect(mockCommands.noOneCanRun.guard).toHaveBeenCalled();
       });
 
@@ -227,7 +205,7 @@ describe('CommandRunner', () => {
         );
         expect(
           runner.processMessage(MockMessage('noOneCanRun'))
-        ).rejects.toThrow();
+        ).resolves.toEqual(expect.anything());
       });
 
       it('does not throw if guard exists but does not throw', () => {

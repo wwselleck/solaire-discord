@@ -1,6 +1,9 @@
 import Discord from 'discord.js';
 import { Command } from './command';
-import { MissingRequiredArgError, InvalidArgValueError } from './error';
+import {
+  InvalidArgValue,
+  MissingRequiredArg
+} from './command-invocation-error';
 import { getIdFromMention } from './discord-message-utils';
 
 function escapeRegex(str: string) {
@@ -127,12 +130,7 @@ export const buildExecuteArgs = (
           commandArg.type
         );
       } catch (e) {
-        throw new InvalidArgValueError({
-          command,
-          commandArg,
-          providedValue: messageArg,
-          invokingMessage: message
-        });
+        throw InvalidArgValue(commandArg, messageArg);
       }
       messageArgIndex++;
       commandArgIndex++;
@@ -141,11 +139,7 @@ export const buildExecuteArgs = (
   while (commandArgIndex < command.args.length) {
     const commandArg = command.args[commandArgIndex];
     if (commandArg.required) {
-      throw new MissingRequiredArgError({
-        command,
-        commandArg,
-        invokingMessage: message
-      });
+      throw MissingRequiredArg(commandArg);
     }
     commandArgIndex++;
   }

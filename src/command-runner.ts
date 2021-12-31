@@ -2,7 +2,40 @@ import Discord from 'discord.js';
 import { Command } from './command';
 import { CommandCollection } from './command-collection';
 import { parseCommandMessage, buildExecuteArgs } from './command-processing';
-import { UnhandledCommandExecutionError } from './error';
+import {
+  CommandInvocationError,
+  CooldownInEffect,
+  BlockedByGuard,
+  UnhandledCommandExecutionError
+} from './command-invocation-error';
+
+interface BaseMessageHandleResult {
+  message: Discord.Message;
+}
+
+interface NoCommandInvoked extends BaseMessageHandleResult {
+  success: true;
+  commandInvoked: false;
+  preludeIncluded: boolean;
+}
+
+interface CommandInvokedSuccess extends BaseMessageHandleResult {
+  success: true;
+  commandInvoked: true;
+  command: Command;
+}
+
+interface CommandInvokedFailure extends BaseMessageHandleResult {
+  success: false;
+  commandInvoked: true;
+  command: Command;
+  error: CommandInvocationError;
+}
+
+type MessageHandleResult =
+  | NoCommandInvoked
+  | CommandInvokedSuccess
+  | CommandInvokedFailure;
 
 interface CommandRunLog {
   command: Command;
@@ -38,7 +71,7 @@ export class CommandRunner {
     this.history = new CommandRunHistory();
   }
 
-  async processMessage(message: Discord.Message) {
+  async processMessage(message: Discord.Message): Promise<MessageHandleResult> {
     const parsedCommandMessage = parseCommandMessage(
       message.content,
       this.options?.prelude
@@ -47,7 +80,12 @@ export class CommandRunner {
     // Could not parse message into a command call,
     // no need to handle
     if (!parsedCommandMessage.success) {
-      return;
+      return {
+        success: true,
+        preludeIncluded: false,
+        commandInvoked: false,
+        message
+      };
     }
 
     const calledCommand = this.commands.getCommand(
@@ -55,8 +93,12 @@ export class CommandRunner {
     );
 
     if (!calledCommand) {
-      //handle eventually
-      return;
+      return {
+        success: true,
+        preludeIncluded: true,
+        commandInvoked: false,
+        message
+      };
     }
 
     if (this.options?.cooldown && this.options.cooldown > 0) {
@@ -64,36 +106,90 @@ export class CommandRunner {
       if (mostRecentRun) {
         const diffMs = Date.now() - mostRecentRun?.date.getTime();
         if (diffMs < this.options.cooldown) {
-          return;
+          return {
+            success: false,
+            message,
+            commandInvoked: true,
+            command: calledCommand,
+            error: CooldownInEffect()
+          };
         }
       }
     }
 
-    const executeArgs = buildExecuteArgs(
-      message,
-      parsedCommandMessage.result.args,
-      calledCommand
-    );
+    let executeArgs;
+    try {
+      executeArgs = buildExecuteArgs(
+        message,
+        parsedCommandMessage.result.args,
+        calledCommand
+      );
+    } catch (e) {
+      return {
+        success: false,
+        message,
+        commandInvoked: true,
+        command: calledCommand,
+        error: e
+      };
+    }
+
+    if (!executeArgs) {
+      throw new Error('executeArgs was falsey somehow');
+    }
 
     const payload = { args: executeArgs, message };
 
     if (calledCommand.guard) {
-      // Will throw if user cannot execute command
-      await calledCommand.guard(payload);
+      let ok = false;
+      let error = null;
+      const guardPayload = {
+        ...payload,
+        ok: () => (ok = true),
+        error: (err?: any) => (error = err)
+      };
+
+      await calledCommand.guard(guardPayload);
+
+      // Eventually need to re-structure to report error object to
+      // some error listener
+      if (!ok) {
+        if (!error) {
+          console.warn(
+            `guard() function for command ${calledCommand.name} did not call ok() or error(), defaulting to no access`
+          );
+        }
+
+        return {
+          success: false,
+          command: calledCommand,
+          commandInvoked: true,
+          message,
+          error: BlockedByGuard(error)
+        };
+      }
     }
 
     try {
       await calledCommand.execute(payload);
     } catch (e) {
-      throw new UnhandledCommandExecutionError({
+      return {
+        success: false,
         command: calledCommand,
-        unhandledError: e,
-        invokingMessage: message
-      });
+        commandInvoked: true,
+        message,
+        error: UnhandledCommandExecutionError(e)
+      };
     }
     this.history.addRun({
       command: calledCommand,
       date: new Date()
     });
+    return {
+      success: true,
+      command: calledCommand,
+      commandInvoked: true,
+      message
+    };
   }
 }
