@@ -153,7 +153,7 @@ export class CommandRunner {
 
       // Eventually need to re-structure to report error object to
       // some error listener
-      if (!ok) {
+      if (error || !ok) {
         if (!error) {
           console.warn(
             `guard() function for command ${calledCommand.name} did not call ok() or error(), defaulting to no access`
