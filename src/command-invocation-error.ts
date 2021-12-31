@@ -31,7 +31,7 @@ export const InvalidArgValue = (
   } as const;
 };
 
-export const UnhandledCommandExecutionError = (error: Error) => {
+export const UnhandledCommandExecutionError = (error: any) => {
   return {
     type: 'unhandled-command-execution-error',
     error

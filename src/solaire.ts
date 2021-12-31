@@ -1,12 +1,14 @@
 import Discord from 'discord.js';
-import { Command, parseCommandString } from './command';
+import EventEmitter from 'events';
+import { Command, CommandArg, parseCommandString } from './command';
 import { CommandCollection } from './command-collection';
 import { CommandRunner } from './command-runner';
-import { SolaireError, UnhandledCommandExecutionError } from './error';
 
 type SolaireCommands = Record<string, Pick<Command, 'execute' | 'guard'>>;
 
 interface SolaireConfig {
+  discordClient: Discord.Client;
+
   /**
    * Discord bot user token
    */
@@ -44,10 +46,7 @@ export class Solaire extends EventEmitter {
   private commands: CommandCollection;
   private runner: CommandRunner;
 
-  constructor(
-    private discordClient: Discord.Client,
-    private config: SolaireConfig
-  ) {
+  constructor(private config: SolaireConfig) {
     super();
     const commands =
       Object.entries(config.commands ?? {})?.map(([cmd, cmdConfig]) => {
@@ -69,20 +68,18 @@ export class Solaire extends EventEmitter {
   }
 
   static create(config: SolaireConfig) {
-    const discordClient = new Discord.Client({
-      partials: ['MESSAGE', 'REACTION']
-    });
-
-    return new Solaire(discordClient, config);
+    return new Solaire(config);
   }
 
   start() {
-    this.discordClient.login(this.config.token);
-    this.discordClient.on('message', (message) => this._onMessage(message));
+    this.config.discordClient.login(this.config.token);
+    this.config.discordClient.on('message', (message) =>
+      this._onMessage(message)
+    );
   }
 
   ejectDiscordClient() {
-    return this.discordClient;
+    return this.config.discordClient;
   }
 
   async _onMessage(message: Discord.Message) {

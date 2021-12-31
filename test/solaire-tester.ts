@@ -4,10 +4,14 @@ import { MockMessage, MockDiscordClient } from './discord-mocks';
 import { flushPromises } from './async';
 
 export const SolaireTester = (
-  solaireConfig: Omit<ConstructorParameters<typeof Solaire>[1], 'token'>
+  solaireConfig: Omit<
+    ConstructorParameters<typeof Solaire>[0],
+    'token' | 'discordClient'
+  >
 ) => {
   const mockDiscordClient = new MockDiscordClient() as Discord.Client;
-  const solaire = new Solaire(mockDiscordClient, {
+  const solaire = new Solaire({
+    discordClient: mockDiscordClient,
     token: 'abc',
     ...solaireConfig
   });

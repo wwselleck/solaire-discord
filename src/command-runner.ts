@@ -130,7 +130,7 @@ export class CommandRunner {
         message,
         commandInvoked: true,
         command: calledCommand,
-        error: e
+        error: e as CommandInvocationError
       };
     }
 

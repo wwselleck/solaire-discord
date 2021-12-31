@@ -1,3 +1,4 @@
+const Discord = require('discord.js');
 const { Solaire } = require('solaire-discord');
 
 class Farm {
@@ -47,6 +48,12 @@ const farm = new Farm();
  *
  */
 const bot = Solaire.create({
+  discordClient: new Discord.Client({
+    intents: [
+      Discord.Intents.FLAGS.GUILDS,
+      Discord.Intents.FLAGS.GUILD_MESSAGES
+    ]
+  }),
   token: process.env.TOKEN || '',
   commandPrelude: '!',
   commandCooldown: 2000,
@@ -102,7 +109,7 @@ const bot = Solaire.create({
             pet.name
           }\n`;
         }
-        message.channel.send(result);
+        return message.channel.send(result);
       }
     },
     'closeFarm|close': {
@@ -124,5 +131,9 @@ const bot = Solaire.create({
 });
 
 farm.addAnimal('cow', 'benny');
+
+bot.on('commandInvokedEnd', (evt) => {
+  console.log(evt);
+});
 
 bot.start();
