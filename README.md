@@ -2,6 +2,8 @@
 
 # Solaire
 
+[![npm version](https://badge.fury.io/js/solaire-discord.svg)](https://badge.fury.io/js/solaire-discord)
+
 A simple framework with an intuitive interface for creating Discord bots using Node.
 
 ```js
