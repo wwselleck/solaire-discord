@@ -22,8 +22,8 @@
     "url": "https://github.com/wwselleck/solaire-discord/issues"
   },
   "homepage": "https://github.com/wwselleck/solaire-discord#readme",
-  "dependencies": {
-    "discord.js": "^12.5.1"
+  "peerDependencies": {
+    "discord.js": ">=12.5.1"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
@@ -31,6 +31,7 @@
     "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
+    "discord.js": "^13.5.0",
     "eslint": "^8.3.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
