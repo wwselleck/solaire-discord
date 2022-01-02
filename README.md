@@ -7,19 +7,25 @@
 A simple framework with an intuitive interface for creating Discord bots using Node.
 
 ```js
+import Discord from 'discord.js';
 import { Solaire } from "solaire-discord";
 
+const client = new Discord.Client({
+  intents: [ Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES ]
+});
+
 const bot = Solaire.create({
+  discordClient: client,
   token: process.env.TOKEN,
   commandPrelude: "!",
   commands: {
     // In a Discord channel...
     // > !ban @someUser being mean
-    "ban <user:GuildMember> <...offense>": {
+    "ban <user:GuildMember> <...reason>": {
       execute({ args, message }) {
         // args.user: Discord.js::GuildMember(someUser)
         // args.offense: ["being", "mean"]
-        message.channel.send(`Banning ${args.user.displayName} for ${args.offense.join(' ')}!`;
+        message.channel.send(`Banning ${args.user.displayName} for ${args.reason.join(' ')}!`;
       },
     },
   },
@@ -38,41 +44,141 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
 
 [Install](#install) ·
 [Example Config](#example-config) ·
-[Commands](#commands)
+[Defining Commands](#defining-commands)
 
 ---
 
 ## Install
 `npm install solaire-discord`
 
-## Example Config
-```js
-  const bot = Solaire.create({
-      token: 'abc-def';
-      commandPrelude: '!';
-      commandCooldown: 5000;
-      commands: ...
-  })
-```
+## Config
 
+| Property          | Required | Type                                   | Desc                                                                                                                                                                         |
+|-------------------|----------|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `discordClient`   | Yes      | `Discord.js::Client`                   | A Discord.js Client object. This client must have the `GUILD_MESSAGES`  intent enabled for Solaire to work properly.                                                         |
+| `token`           | Yes      | `string`                               | Your bots Discord token (see https://discord.com/developers/docs/intro)                                                                                                      |
+| `commandPrelude`  | No       | `string`                               | The string that must precede a command's name in a Discord message for  the command to be invoked. Common values are `!`, `?`, `;;`, but any  string would technically work. |
+| `commandCooldown` | No       | `number`                               | The amount of time in milliseconds that a command is un-invokable after being used. This cooldown is _per-command_.                                                          |
+| `commands`        | Yes      | `Record<string, CommandConfiguration>` | See [Defining commands](#defining-commands) and [Command configuration](#command-configuration)                                                                                                                            |
 
-## Commands
-Commands are probably what you think of first when thinking about chat bots. They let you type something like
+## Defining commands
+In Solaire, bot commands are defined using a definition string that resembles how you would actually use the command in Discord. For example, a command that is used like `!ban @someAnnoyingUser being mean`, would be defined using the string `ban <user:GuildMember> [...reason]`.
 
-> !ban @someAnnoyingUser mean
+This string, along with associated configuration for the command, is passed in via your Solaire config's `commands` property.
 
-in a text room and have a bot user perform that action for you.
-
-Solaire lets you define your bot's commands by writing out a definition string that maps very closely to how you'd actually use the command in your Discord server.
-
-To demonstrate how to define commands in Solaire, we'll build a command for banning users from your server, starting with the simplest possible definition, and working up to a more complex definition using the ease-of-use options that Solaire provides.
 ```js
    const bot = Solaire.create({
     ...
     commands: {
-      'ban <user> <reason>': {
-        execute({ args, message }) {
-          ...
+      'ban <user:GuildMember> <...reason>': {
+        ...
+      }
+    }
+  })
+```
+
+### Command Name & Aliases
+A command's name is defined as the first word in your command definition string
+```
+ban <user>
+^------ "ban" is the command's name
+```
+
+You can define aliases for a command by appending the command's name with `|<alias>`, e.g.
+```
+ban|b|banMember <user>
+^---- "ban is the command's name, but "b" and "banMember" can also be used to invoke the command
+```
+
+
+### Command Arguments
+After your command's name, you can define any number of arguments that can be passed into your command. 
+
+**Required Arguments**
+
+Required arguments are denoted in the definition string by being wrapped in `<>`, e.g.
+```
+ban <user>
+      ^---- "user" is a required argument for the "ban" command
+```
+
+**Optional Arguments**
+
+Optional arguments are denoted by being wrapped in `[]`, e.g.
+```
+ban <user> [reason]
+             ^---- "reason" is an optional argument
+```
+
+When an optional argument is defined, the remaining arguments in the command must also be optional.
+
+```
+ban [reason> <user>
+               ^----- INVALID - since "reason" is optional, all arguments after it must also be optional           
+```
+
+**Rest Arguments**
+
+A "rest" argument is an arg whose value is defined as all remaining words in a message. They are denoted by the arg's name being preceded with `...`. e.g.
+
+```
+ban <user> [reason]
+> !ban @someAnnoyingUser being mean
+                          ^----- "reason" arg has value "being"
+                          
+ban <user> [...reason]
+> !ban @someAnnoyingUser being mean
+                          ^----- "reason" arg has value "being mean"
+```
+
+A rest argument must be the last argument of a command. When accessing the argument in your execute, guard, etc. functions, the value of the argument will be an array.
+
+#### Argument Types
+
+An argument's value can be constrained by defining an explicit `type` for that argument, denoted in the command definition string by appending the argument's name with `:<argType>`, e.g.
+
+```
+ban <user:GuildMember>
+           ^---- "user" arg value must be parseable into a "GuildMember" type
+```
+
+Defining an argument type has a few benefits
+
+- It validates that the passed in value is valid
+- It automatically parses the argument and fits it to its type, transforming the value to a more convenient data type for use when processing and executing the command
+- It provides documentation for how our command is supposed to be used
+
+The available argument types are:
+
+| Argument Type | Validation                                                               | Resolved JS Type          |
+|---------------|--------------------------------------------------------------------------|---------------------------|
+| Int           | Validates using `parseInt`                                               | `Number`                  |
+| Float         | Validates using `parseFloat`                                             | `Number`                  |
+| GuildMember   | Validates that ID passed in resolves to a member of the message's server | `Discord.js::GuildMember` |
+| Date          | Validates using `new Date()`                                             | `Date`
+
+
+
+## Command Configuration
+### Command Execute Function
+When your command is invoked, the command's `execute` function gets called.
+
+```js
+   const bot = Solaire.create({
+    ...
+    commandPrelude: '!',
+    commands: {
+      'ban <user:GuildMember> [...reason]': {
+        async execute({ args, message }) {
+         // message: Discord.js::Message
+         // args.user: Discord.js::GuildMember
+         // args.reason: string[]
+         
+         const fullReason = args.reason.join(' ');
+
+         message.channel.send(`Banning ${args.user.displayName} for ${fullReason}`;
+
+         user.ban({ reason: fullReason })
         }
       }
     }
@@ -80,10 +186,41 @@ To demonstrate how to define commands in Solaire, we'll build a command for bann
 ```
 
 ```
-> ban @someAnnoyingUser mean
+> !ban @someAnnoyingUser mean
+< Banning Some Annoying User for mean
 ```
 
-This configuration defines one command for your bot, `ban`, that accepts two arguments, `user` and `reason`. There's a bit more we can add to this that we'll get to in a second, but the great thing about this form of defining commands is that its self-documenting; the interface of this command is clearly defined in one place, as opposed to say having to read through a JS object that defines a command and patching together in your head what the syntax for that command is.
+The payload that gets passed into the `execute` function contains the following properties
+
+| Property  | Type                  | Desc                                   |
+|-----------|-----------------------|----------------------------------------|
+| `args`    | `Record<string, any>` | The arguments passed into the command  |
+| `message` | `Discord.js::Message` | The message that triggered the command |
+
+
+### Command Authorization
+
+You can restrict which users can invoke a command by defining a `guard` function for a command. 
+
+```
+   const bot = Solaire.create({
+    ...
+    commandPrelude: '!',
+    commands: {
+      'ban <user:GuildMember> [...reason]': {
+        async execute({ args, message }) {...},
+        async guard({ error, ok, message, args}) {
+          if(!message.member.roles.cache.some(r => r.name.toLowerCase() === 'admin'){
+            error('Member must be an admin');
+          } else {
+            ok();
+          }
+        }
+      }
+    }
+  })
+```
+The payload provided to the `guard` function is the same as the one given to the `execute` function, with the addition of two new callback properties `ok` and `error`. If a `guard` function is provided, the command will be exected **only if** `guard` calls the `ok` function, **and** the `error` function is **not** called. If neither is called, the command will default closed and not execute.
 
 ### Command Prelude
 It is heavily suggested that you assign a `commandPrelude` to your bot, which is the string that is required at the start of any command invocation. Otherwise, Solaire has to process every single message for the possibility that it's invoking a command. It's also just nan extremely common practice for chat bots.
@@ -107,229 +244,25 @@ It is heavily suggested that you assign a `commandPrelude` to your bot, which is
 > !ban @someAnnoyingUser mean
 ```
 
-### Command Execute Function
-When your command is invoked, the command's `execute` function gets called, passing in the arguments used and the Discord.js::Message object that invoked the command.
 
-```js
-   const bot = Solaire.create({
-    ...
-    commandPrelude: '!',
-    commands: {
-      'ban <user> <reason>': {
-        async execute({ args, message }) {
-         // message: Discord.js::Message
-         // args.user: string
-         // args.reason: string
 
-         const user = await message.guild.members.fetch(args.user);
-
-         message.channel.send(`Banning ${user.displayName} for ${args.reason}`;
-
-         user.ban({ reason: args.reason })
-        }
-      }
-    }
-  })
-```
-
-```
-> !ban @someAnnoyingUser mean
-< Banning Some Annoying User for mean
-```
-
-### Command Aliases
-For whatever reason, our server is prone to attracting many mean users, and we're spending a ton of time typing `!ban` each time we need to get rid of someone. To fix this, we can define an alias for our command, say just `b`, by simply adding `|` plus the name of our alias after the name of the command.
-
-```js
-   const bot = Solaire.create({
-    ...
-    commandPrelude: '!',
-    commands: {
-      'ban|b <user> <reason>': {
-        ...
-      }
-    }
-  })
-```
-
-```
-> !b @someAnnoyingUser mean
-< Banning Some Annoying User for mean
-```
-
-You can add as many aliases as you want.
-
-```js
-   const bot = Solaire.create({
-    ...
-    commandPrelude: '!',
-    commands: {
-      'ban|b|banUser|goAway <user> <reason>': {
-        ...
-      }
-    }
-  })
-```
-
-### Optional Arguments
-We also happen to be tired of having to type in a reason every time we ban someone, but if we were to leave a reason out of the ban message, we'd get this
-
-```
-> !ban @someAnnoyingUser
-< Missing required argument 'reason'
-```
-
-This is because we defined our command's arguments by wrapping them in `<>`, which denotes that they are **required** arguments. If we instead wrapped our `reason` argument in `[]`, it would be **optional**.
-
-```js
-   const bot = Solaire.create({
-    ...
-    commandPrelude: '!',
-    commands: {
-      'ban|b <user> [reason]': {
-         const user = await message.guild.members.fetch(args.user);
-
-         message.channel.send(`Banning ${user.displayName} ${args.reason
-           ? `for ${args.reason}`
-           : ''
-         }`);
-
-         user.ban({ reason: args.reason })
-      }
-    }
-  })
-```
-
-```
-> !b @someAnnoyingUser
-< Banning Some Annoying User
-```
-
-### Rest Arguments
-You may be wondering why the example `reason` I've been using thus far has just been the word "mean". Surely "being mean" or "spamming some meme stock" would be a better, more descriptive reason. But if we were to try that now...
-
-```
-> !ban @someAnnoyingUser being mean
-< Banning Some Annoying User for being
-```
-
-The `args.reason` passed to our `execute` function is just the first word of the reason; the rest gets ignored since as far as our command definition is concerned, this command accepts 2 commands and we were passed 3.
-
-To fix this, we can define `reason` as a "rest" argument, by prepending our arguments name with `...`. With rest arguments, the _rest_ of the message gets interpreted as of the value of the argument.
-
-```js
-   const bot = Solaire.create({
-    ...
-    commands: {
-      'ban <user> [...reason]': {
-        async execute({ args, message }) {
-         // message: Discord.js::Message
-         // args.user: string
-         // args.reason: string[]
-
-         const user = await message.guild.members.fetch(args.user);
-
-         message.channel.send(`Banning ${user.displayName} ${args.reason
-           ? `for ${args.reason.join(' ')}`
-           : ''
-         }`);
-
-         user.ban({ reason: args.reason?.join(' ') })
-        }
-      }
-    }
-  })
-```
 
 ```
 > !ban @someAnnoyingUser being mean
 < Banning Some Annoying User for being mean
 ```
 
-### Argument Types
-Another issue with our command is that we're just assuming that the user is going to pass us valid arguments when they invoke it, when they may very well pass in some nonsense.
+## Events
 
-```
-> !ban :)
->>>>> Uncaught TypeError: Could not read property 'displayName' of undefined
-```
+The Solaire class extends `EventEmitter`, and emits events that you can listen to. 
 
-We couldn't resolve the passed in user to an actual Discord user, and our program crashed. Of course we could do our own validation of this variable and bail out before trying to use the `user`, but who wants to do that?
+### `commandInvokedEnd`
 
-Instead, we can define a type for our argument, by appending the argument name with `:` plus the name of the type.
+This event gets emitted after a bot command is invoked and Solaire has finished processing the invocation. The object that is passed to the listener has the following properties
 
-```js
-   const bot = Solaire.create({
-    ...
-    commands: {
-      'ban <user:GuildMember> [...reason]': {
-        async execute({ args, message }) {
-         // message: Discord.js::Message
-         // args.user: Discord.js::GuildMember
-         // args.reason: string[]
-
-         message.channel.send(`Banning ${args.user.displayName} ${args.reason
-           ? `for ${args.reason.join(' ')}`
-           : ''
-         }`);
-
-         user.ban({ reason: args.reason?.join(' ') })
-        }
-      }
-    }
-  })
-```
-
-Typing our argument provides two substantial benefits to our command's definition
-
-- It validates that the passed in value is valid
-- It automatically parses the argument and fits it to its type, transforming the value to a more convenient data type before passing off control to the `execute` function. In this case, Solaire automatically resolved the user ID that we pass into the `ban` command to a `GuildMember` object.
-- It provides documentation for how our command is supposed to be used
-
-Now, if we try to pass an invalid value for the `user`, Solaire automatically responds with the issue.
-
-```
-> !ban :)
-< Invalid value :) provided for arg user of type GuildMember
-```
-
-> Aside: I know some users may not want Solaire to automatically respond with this error and would instead prefer to handle the error themselves. This functionality is coming, and Solaire's automated responses will likely become opt-in.
-
-The available argument types are:
-
-| Argument Type | Validation                                                               | Resolved JS Type          |
-|---------------|--------------------------------------------------------------------------|---------------------------|
-| Int           | Validates using `parseInt`                                               | `Number`                  |
-| Float         | Validates using `parseFloat`                                             | `Number`                  |
-| GuildMember   | Validates that ID passed in resolves to a member of the message's server | `Discord.js::GuildMember` |
-
-If no argument type is provided, the arg is just passed through as a string.
-
-### Error Handling
-
-When an error is thrown during the processing of a command, the `onError` function is called, if provided in your Solaire config
-
-```js
-const bot = Solaire.create({
-    ...
-    onError(error) {
-        ...
-    }
-});
-```
-
-Many different kinds of errors can get thrown, but all share some common properties
-- **invokingMessage : Discord.js::Message** - This is the message that triggered the error
-- **command : Solaire::Command** - The command that was running/attempted to be ran
-
-#### UnhandledCommandExecutionError
-This will get thrown when an error is thrown from a command's execute function.
-
-**Properties**
-- **unhandledError : Error** - The unhandled error that was thrown from a command's `execute` function
-
-#### MissingRequiredArg
-This will get thrown when an error is thrown from a command's execute function.
-
-**Properties**
-- ** : Error** - The unhandled error that was thrown from a command's `execute` function
+| Property  | Type                     | Desc                                              |
+|-----------|--------------------------|---------------------------------------------------|
+| `success` | `boolean`                | Whether or not the command executed successfully  |
+| `command` | `Command`                | The Command that was invoked                      |
+| `message` | `Discord.js::Message`    | The message that invoked the command              |
+| `error`   | `CommandInvocationError` | See [`command-invocation-error.ts`](./src/command-invocation-error.ts) for all possible values  |
