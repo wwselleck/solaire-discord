@@ -44,7 +44,9 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
 
 [Install](#install) ·
 [Example Config](#example-config) ·
-[Defining Commands](#defining-commands)
+[Defining Commands](#defining-commands) ·
+[Command Configuration](#command-configuration) ·
+[Events](#events)
 
 ---
 
@@ -56,7 +58,7 @@ Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord
 | Property          | Required | Type                                   | Desc                                                                                                                                                                         |
 |-------------------|----------|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `discordClient`   | Yes      | `Discord.js::Client`                   | A Discord.js Client object. This client must have the `GUILD_MESSAGES`  intent enabled for Solaire to work properly.                                                         |
-| `token`           | Yes      | `string`                               | Your bots Discord token (see https://discord.com/developers/docs/intro)                                                                                                      |
+| `token`           | Yes      | `string`                               | Your bot's Discord token (see https://discord.com/developers/docs/intro)                                                                                                      |
 | `commandPrelude`  | No       | `string`                               | The string that must precede a command's name in a Discord message for  the command to be invoked. Common values are `!`, `?`, `;;`, but any  string would technically work. |
 | `commandCooldown` | No       | `number`                               | The amount of time in milliseconds that a command is un-invokable after being used. This cooldown is _per-command_.                                                          |
 | `commands`        | Yes      | `Record<string, CommandConfiguration>` | See [Defining commands](#defining-commands) and [Command configuration](#command-configuration)                                                                                                                            |
@@ -202,7 +204,7 @@ The payload that gets passed into the `execute` function contains the following 
 
 You can restrict which users can invoke a command by defining a `guard` function for a command. 
 
-```
+```js
    const bot = Solaire.create({
     ...
     commandPrelude: '!',
