@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/wwselleck/solaire-discord#readme",
   "peerDependencies": {
-    "discord.js": ">=12.5.1"
+    "discord.js": "^13.0.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
