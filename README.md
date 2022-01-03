@@ -4,7 +4,7 @@
 
 [![npm version](https://badge.fury.io/js/solaire-discord.svg)](https://badge.fury.io/js/solaire-discord)
 
-A simple framework with an intuitive interface for creating Discord bots using Node.
+A lightweight framework with a simple interface for creating Discord bots in Node
 
 ```js
 import Discord from 'discord.js';
@@ -37,6 +37,18 @@ bot.start();
 
 ### Discord.js
 Solaire interacts heavily with [Discord.js](https://github.com/discordjs/discord.js), and many of the objects exposed from the Solaire API will be directly from Discord.js.
+
+**Solaire requires that you provide a Discord.js client version >=13.0.0**
+
+### 📣 Simplicity & Limitations 📣
+Solaire is very much targetted at developers working on smaller or simpler Discord bots that don't require some of the more advanced features of existing popular Discord bot frameworks, and just want something that will get their bot up and running quickly. More advanced features may be added in the future, but the guiding principle of the framework will always be simplicity in its API. 
+
+If you don't find Solaire's feature-set to be advanced enough for your use case, there are other great Discord/Node frameworks to take a look at 
+- [sapphire](https://github.com/sapphiredev/framework)
+- [discord-akairo](https://github.com/discord-akairo/discord-akairo)
+
+#### Slash Commands
+Solaire does **not** utilize the new Discord [slash commands feature](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6), instead utilizing the old-fashioned method of listening to new message events.
 
 ---
 
