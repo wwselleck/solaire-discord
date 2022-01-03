@@ -39,7 +39,7 @@ interface SolaireConfig {
   /**
    * The commands to initialize the bot with
    */
-  commands?: SolaireCommandsConfig;
+  commands?: SolaireCommands;
 }
 
 export class Solaire extends EventEmitter {
