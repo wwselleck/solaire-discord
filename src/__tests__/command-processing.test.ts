@@ -5,8 +5,7 @@ import { MockMessage } from '../../test/discord-mocks';
 const CommandWithArgs = (args: Command['args']): Command => {
   return {
     name: 'test',
-    args,
-    execute() {}
+    args
   };
 };
 

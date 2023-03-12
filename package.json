@@ -8,7 +8,7 @@
   "license": "ISC",
   "scripts": {
     "build": "tsc",
-    "test": "jest ./src/**/*.test.ts",
+    "test": "jest",
     "lint": "which eslint && eslint --fix src"
   },
   "repository": {

@@ -1,6 +1,11 @@
 import Discord from 'discord.js';
-import { Command } from './command';
-import { CommandInvocationError } from './command-invocation-error';
+import { EventEmitter } from 'events';
+import { Command } from '../command';
+import { CommandInvocationError } from '../command-invocation-error';
+
+export interface SolaireMode extends EventEmitter {
+  start(): Promise<void>;
+}
 
 interface BaseMessageHandleResult {
   message: Discord.Message;
@@ -25,7 +30,7 @@ interface CommandInvokedFailure extends BaseMessageHandleResult {
   error: CommandInvocationError;
 }
 
-type MessageHandleResult =
+export type MessageHandleResult =
   | NoCommandInvoked
   | CommandInvokedSuccess
   | CommandInvokedFailure;

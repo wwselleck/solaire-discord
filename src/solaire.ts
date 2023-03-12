@@ -1,70 +1,36 @@
 import Discord from 'discord.js';
 import EventEmitter from 'events';
-import { Command, CommandArg, parseCommandString } from './command';
-import { CommandCollection } from './command-collection';
-import { CommandRunner } from './command-runner';
+import { Mode, Command, CommandArg, parseCommandString } from './command';
+import {
+  ExecutableCommandCollection,
+  ExecuteFn,
+  GuardFn
+} from './executable-command-collectoin';
+import { PreludeCommandRunner } from './command-runner';
+import { SolaireMode } from './modes/mode';
+import { PreludeMode, SolairePreludeConfig } from './modes/prelude';
 
-type SolaireCommands = Record<string, Pick<Command, 'execute' | 'guard'>>;
+type SolaireCommands<M extends Mode> = Record<
+  string,
+  {
+    execute: ExecuteFn<M>;
+    guard: GuardFn<M>;
+  }
+>;
 
-interface SolaireConfig {
-  discordClient: Discord.Client;
-
-  /**
-   * Discord bot user token
-   */
-  token: string;
-
-  /**
-   * The text that a command invocation must start with.
-   *
-   * Example:
-   *   For a command named `echo` and a commandPrelude of `'!'`, the message
-   *
-   *     echo Hello world!
-   *
-   *   will not execute the `echo` command, because it did not start with the `'!'`
-   *   prelude.
-   *
-   *     !echo Hello world!
-   *
-   *   This message would invoke the `echo` command.
-   */
-  commandPrelude?: string;
-
-  /**
-   * The default cooldown for all commands, in milliseconds.
-   */
-  commandCooldown?: number;
-
-  /**
-   * The commands to initialize the bot with
-   */
-  commands?: SolaireCommands;
+interface SolaireSlashConfig {
+  mode: 'slash';
 }
 
+type SolaireConfig = SolairePreludeConfig;
+
 export class Solaire extends EventEmitter {
-  private commands: CommandCollection;
-  private runner: CommandRunner;
+  private mode: SolaireMode | null;
 
   constructor(private config: SolaireConfig) {
     super();
-    const commands =
-      Object.entries(config.commands ?? {})?.map(([cmd, cmdConfig]) => {
-        const { name, aliases, args } = parseCommandString(cmd);
-        return {
-          ...cmdConfig,
-          name,
-          aliases,
-          args
-        };
-      }) ?? [];
-
-    this.commands = new CommandCollection(commands);
-
-    this.runner = new CommandRunner(this.commands, {
-      prelude: config.commandPrelude,
-      cooldown: config.commandCooldown
-    });
+    const mode = config.mode ?? 'prelude';
+    this.mode = mode === 'prelude' ? new PreludeMode(config) : null;
   }
 
   static create(config: SolaireConfig) {
@@ -73,19 +39,6 @@ export class Solaire extends EventEmitter {
 
   start() {
     this.config.discordClient.login(this.config.token);
-    this.config.discordClient.on('message', (message) =>
-      this._onMessage(message)
-    );
-  }
-
-  ejectDiscordClient() {
-    return this.config.discordClient;
-  }
-
-  async _onMessage(message: Discord.Message) {
-    const result = await this.runner.processMessage(message);
-    if (result.commandInvoked) {
-      this.emit('commandInvokedEnd', result);
-    }
+    this.mode?.start();
   }
 }

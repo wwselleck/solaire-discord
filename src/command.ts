@@ -1,5 +1,7 @@
 import Discord from 'discord.js';
 
+export type Mode = 'slash' | 'prelude';
+
 export interface CommandArg {
   name: string;
   required?: boolean;
@@ -7,24 +9,10 @@ export interface CommandArg {
   type?: string;
 }
 
-export type CommandExecuteArgs = Record<string, any>;
-
-export interface CommandExecutePayload {
-  message: Discord.Message;
-  args: CommandExecuteArgs;
-}
-
-export interface GuardPayload extends CommandExecutePayload {
-  ok(): void;
-  error(err?: any): void;
-}
-
 export interface Command {
   name: string;
   aliases?: string[];
   args?: CommandArg[];
-  guard?(payload: GuardPayload): Promise<void> | void;
-  execute(payload: CommandExecutePayload): Promise<void> | void;
 }
 
 export function parseCommandString(cmdString: string) {

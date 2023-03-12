@@ -1,6 +1,6 @@
 import Discord from 'discord.js';
 import { CommandRunner } from '../command-runner';
-import { CommandCollection } from '../command-collection';
+import { CommandCollection } from '../executable-command-collection';
 
 jest.useFakeTimers('modern');
 

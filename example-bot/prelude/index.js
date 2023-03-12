@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { Solaire } = require('solaire-discord');
+const { Solaire } = require('../../src');
 
 class Farm {
   animals = [];
@@ -55,8 +55,9 @@ const bot = Solaire.create({
     ]
   }),
   token: process.env.TOKEN || '',
-  commandPrelude: '!',
-  commandCooldown: 2000,
+  mode: 'prelude',
+  prelude: '!',
+  cooldown: 2000,
   commands: {
     'add-animal|add <animalKind> [animalName]': {
       execute({ args }) {
@@ -98,7 +99,7 @@ const bot = Solaire.create({
 
         const { user } = args;
 
-        let petsToOutput = user
+        const petsToOutput = user
           ? petHistory.filter((pet) => pet.idUser === user.user.id).slice(0, 10)
           : petHistory.slice(0, 10);
 
