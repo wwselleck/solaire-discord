@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { Solaire } = require('../../src');
+const { PrefixCommands } = require('../../src');
 
 class Farm {
   animals = [];
@@ -47,7 +47,7 @@ const farm = new Farm();
  * Alfred the Cow
  *
  */
-const bot = Solaire.create({
+const bot = new PrefixCommands({
   discordClient: new Discord.Client({
     intents: [
       Discord.Intents.FLAGS.GUILDS,
@@ -55,8 +55,7 @@ const bot = Solaire.create({
     ]
   }),
   token: process.env.TOKEN || '',
-  mode: 'prelude',
-  prelude: '!',
+  prefix: '!',
   cooldown: 2000,
   commands: {
     'add-animal|add <animalKind> [animalName]': {
@@ -77,6 +76,7 @@ const bot = Solaire.create({
         } else {
           response = 'There are no animals in the farm :(';
         }
+        console.log(response);
 
         message.channel.send(response);
       }

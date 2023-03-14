@@ -5,10 +5,9 @@ import {
   ExecutableCommandCollection,
   ExecuteFn,
   GuardFn
-} from './executable-command-collectoin';
-import { PreludeCommandRunner } from './command-runner';
+} from './executable-command-collection';
 import { SolaireMode } from './modes/mode';
-import { PreludeMode, SolairePreludeConfig } from './modes/prelude';
+import { prefixMode, SolairePreludeConfig } from './modes/prelude';
 
 type SolaireCommands<M extends Mode> = Record<
   string,
@@ -24,13 +23,13 @@ interface SolaireSlashConfig {
 
 type SolaireConfig = SolairePreludeConfig;
 
-export class Solaire extends EventEmitter {
+export class PrefixCommands extends EventEmitter {
   private mode: SolaireMode | null;
 
   constructor(private config: SolaireConfig) {
     super();
-    const mode = config.mode ?? 'prelude';
-    this.mode = mode === 'prelude' ? new PreludeMode(config) : null;
+    const mode = config.mode ?? 'prefix';
+    this.mode = mode === 'prefix' ? new PreludeMode(config) : null;
   }
 
   static create(config: SolaireConfig) {

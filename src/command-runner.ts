@@ -9,7 +9,7 @@ interface BaseMessageHandleResult {
 interface NoCommandInvoked extends BaseMessageHandleResult {
   success: true;
   commandInvoked: false;
-  preludeIncluded: boolean;
+  prefixIncluded: boolean;
 }
 
 interface CommandInvokedSuccess extends BaseMessageHandleResult {

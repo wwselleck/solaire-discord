@@ -10,7 +10,7 @@ const CommandWithArgs = (args: Command['args']): Command => {
 };
 
 describe('parseCommandMessage', () => {
-  it('should correctly parse a valid command message with a prelude', () => {
+  it('should correctly parse a valid command message with a prefix', () => {
     const res = parseCommandMessage('!ping hello there', '!');
     expect(res.success).toEqual(true);
     expect((res as any).result).toEqual({
@@ -19,7 +19,7 @@ describe('parseCommandMessage', () => {
     });
   });
 
-  it('should correctly parse a valid command message without a prelude', () => {
+  it('should correctly parse a valid command message without a prefix', () => {
     const res = parseCommandMessage('!ping hello there');
     expect(res.success).toEqual(true);
     expect((res as any).result).toEqual({
@@ -51,7 +51,7 @@ describe('parseCommandMessage', () => {
     expect(res.success).toEqual(false);
   });
 
-  it('should consider leading whitespace when determining prelude match', () => {
+  it('should consider leading whitespace when determining prefix match', () => {
     let res = parseCommandMessage('  !ping hello there', '!');
     expect(res.success).toEqual(false);
 

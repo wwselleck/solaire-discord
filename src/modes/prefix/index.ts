@@ -1,19 +1,22 @@
 import Discord from 'discord.js';
-import { Command, parseCommandString } from '../command';
+import { Command, parseCommandString } from '../../command';
 import {
   ExecutableCommandCollection,
   ExecuteFn,
   GuardFn
-} from '../executable-command-collection';
-import { parseCommandMessage, buildExecuteArgs } from '../command-processing';
+} from '../../executable-command-collection';
+import {
+  parseCommandMessage,
+  buildExecuteArgs
+} from '../../command-processing';
 import {
   CommandInvocationError,
   CooldownInEffect,
   BlockedByGuard,
   UnhandledCommandExecutionError
-} from '../command-invocation-error';
+} from '../../command-invocation-error';
 
-import { SolaireMode, MessageHandleResult } from './mode';
+import { MessageHandleResult } from '../mode';
 import EventEmitter from 'events';
 
 interface CommandRunLog {
@@ -41,9 +44,8 @@ class CommandRunHistory {
   }
 }
 
-export interface SolairePreludeConfig {
+export interface PrefixCommandsConfig {
   discordClient: Discord.Client;
-  mode: 'prefix';
 
   /**
    * Discord bot user token
@@ -84,13 +86,10 @@ export interface SolairePreludeConfig {
   >;
 }
 
-export class PreludeMode extends EventEmitter implements SolaireMode {
+export class PrefixCommands extends EventEmitter {
   private history: CommandRunHistory;
   private executableCommands: ExecutableCommandCollection<'prefix'>;
-  constructor(
-    private config: SolairePreludeConfig,
-    private options?: { prefix?: string; cooldown?: number }
-  ) {
+  constructor(private config: PrefixCommandsConfig) {
     super();
     this.history = new CommandRunHistory();
     this.executableCommands = new ExecutableCommandCollection();
@@ -105,6 +104,7 @@ export class PreludeMode extends EventEmitter implements SolaireMode {
   }
 
   async start() {
+    this.config.discordClient.login(this.config.token);
     this.config.discordClient.on(
       'message',
       async (message: Discord.Message) => {
@@ -124,7 +124,6 @@ export class PreludeMode extends EventEmitter implements SolaireMode {
   }
 
   async processMessage(message: Discord.Message): Promise<MessageHandleResult> {
-    console.log(this.config);
     const parsedCommandMessage = parseCommandMessage(
       message.content,
       this.config.prefix
@@ -141,12 +140,10 @@ export class PreludeMode extends EventEmitter implements SolaireMode {
       };
     }
 
-    console.log(parsedCommandMessage);
     const executableCommand = this.executableCommands.get(
       parsedCommandMessage.result.name
     );
 
-    console.log(executableCommand);
     if (!executableCommand) {
       return {
         success: true,
@@ -156,13 +153,13 @@ export class PreludeMode extends EventEmitter implements SolaireMode {
       };
     }
 
-    if (this.options?.cooldown && this.options.cooldown > 0) {
+    if (this.config?.cooldown && this.config.cooldown > 0) {
       const mostRecentRun = this.history.latestRunOfCommand(
         executableCommand.command
       );
       if (mostRecentRun) {
         const diffMs = Date.now() - mostRecentRun?.date.getTime();
-        if (diffMs < this.options.cooldown) {
+        if (diffMs < this.config.cooldown) {
           return {
             success: false,
             message,

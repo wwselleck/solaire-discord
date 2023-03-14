@@ -90,12 +90,12 @@ describe('CommandRunner', () => {
       expect(mockCommands.standard2.execute).not.toHaveBeenCalled();
     });
 
-    describe('command prelude', () => {
-      it('does not execute a command if the message did not include the prelude', () => {
+    describe('command prefix', () => {
+      it('does not execute a command if the message did not include the prefix', () => {
         const runner = new CommandRunner(
           new CommandCollection([mockCommands.standard]),
           {
-            prelude: '!'
+            prefix: '!'
           }
         );
         const msg = MockMessage('standard');
@@ -103,11 +103,11 @@ describe('CommandRunner', () => {
         expect(mockCommands.standard.execute).not.toHaveBeenCalled();
       });
 
-      it('does executes a command if the message did include the prelude', () => {
+      it('does executes a command if the message did include the prefix', () => {
         const runner = new CommandRunner(
           new CommandCollection([mockCommands.standard]),
           {
-            prelude: '!'
+            prefix: '!'
           }
         );
         const msg = MockMessage('!standard');

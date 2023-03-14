@@ -1,6 +1,6 @@
 import Discord from 'discord.js';
 
-export type Mode = 'slash' | 'prelude';
+export type Mode = 'slash' | 'prefix';
 
 export interface CommandArg {
   name: string;

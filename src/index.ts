@@ -1,2 +1,2 @@
-export { Solaire } from './solaire';
+export { PrefixCommands } from './modes/prefix';
 export * from './discord-message-utils';

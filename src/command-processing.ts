@@ -24,13 +24,13 @@ function escapeRegex(str: string) {
  * Return: [!trivia, c]
  *
  */
-const extractCommandTokens = (prelude = '', message: string) => {
-  if (!message.startsWith(prelude)) {
+const extractCommandTokens = (prefix = '', message: string) => {
+  if (!message.startsWith(prefix)) {
     return [];
   }
 
-  // Remove the prelude
-  const re = new RegExp(`^(${escapeRegex(prelude)})`);
+  // Remove the prefix
+  const re = new RegExp(`^(${escapeRegex(prefix)})`);
   const messageWithoutPrelude = message.replace(re, '');
 
   return messageWithoutPrelude.match(/\S+/g) ?? [];
@@ -79,9 +79,9 @@ interface ParsedCommandMessage {
 
 export const parseCommandMessage = (
   message: string,
-  prelude?: string
+  prefix?: string
 ): { success: false } | { success: true; result: ParsedCommandMessage } => {
-  const tokens = extractCommandTokens(prelude, message);
+  const tokens = extractCommandTokens(prefix, message);
   if (tokens.length === 0) {
     return {
       success: false
