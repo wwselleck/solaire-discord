@@ -76,7 +76,6 @@ const bot = new PrefixCommands({
         } else {
           response = 'There are no animals in the farm :(';
         }
-        console.log(response);
 
         message.channel.send(response);
       }

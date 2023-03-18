@@ -1,4 +1,5 @@
 import Discord from 'discord.js';
+import EventEmitter from 'events';
 import { Command, parseCommandString } from '../../command';
 import {
   ExecutableCommandCollection,
@@ -17,7 +18,6 @@ import {
 } from '../../command-invocation-error';
 
 import { MessageHandleResult } from '../mode';
-import EventEmitter from 'events';
 
 interface CommandRunLog {
   command: Command;
