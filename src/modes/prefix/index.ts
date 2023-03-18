@@ -1,6 +1,6 @@
 import Discord from 'discord.js';
 import EventEmitter from 'events';
-import { Command, parseCommandString } from '../../command';
+import { ParsedCommandString, parseCommandString } from '../../command';
 import {
   ExecutableCommandCollection,
   ExecuteFn,
@@ -20,7 +20,7 @@ import {
 import { MessageHandleResult } from '../mode';
 
 interface CommandRunLog {
-  command: Command;
+  command: ParsedCommandString;
   date: Date;
 }
 
@@ -34,7 +34,7 @@ class CommandRunHistory {
     this.logs.unshift(log);
   }
 
-  latestRunOfCommand(command: Command) {
+  latestRunOfCommand(command: ParsedCommandString) {
     for (const log of this.logs) {
       if (log.command.name === command.name) {
         return log;

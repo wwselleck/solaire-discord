@@ -1,5 +1,5 @@
 import Discord from 'discord.js';
-import { Command } from './command';
+import { ParsedCommandString } from './command';
 import {
   InvalidArgValue,
   MissingRequiredArg
@@ -102,7 +102,7 @@ export const parseCommandMessage = (
 export const buildExecuteArgs = (
   message: Discord.Message,
   messageArgs: ParsedCommandMessage['args'],
-  command: Command
+  command: ParsedCommandString
 ): Record<string, any> => {
   if (!command.args) {
     return {};

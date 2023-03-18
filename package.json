@@ -8,6 +8,8 @@
   "license": "ISC",
   "scripts": {
     "build": "tsc",
+    "start:example:prefix": "ts-node ./example-bot/prefix/index.js",
+    "start:example:slash": "ts-node ./example-bot/slash/index.ts",
     "test": "jest",
     "lint": "which eslint && eslint --fix src"
   },
@@ -23,7 +25,7 @@
   },
   "homepage": "https://github.com/wwselleck/solaire-discord#readme",
   "peerDependencies": {
-    "discord.js": "^13.0.0"
+    "discord.js": "^14.0.0"
   },
   "devDependencies": {
     "@types/jest": "^27.0.3",
@@ -31,7 +33,8 @@
     "@types/ws": "^7.4.0",
     "@typescript-eslint/eslint-plugin": "^5.4.0",
     "@typescript-eslint/parser": "^5.4.0",
-    "discord.js": "^13.5.0",
+    "discord-api-types": "^0.37.36",
+    "discord.js": "^14.5.0",
     "eslint": "^8.3.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",

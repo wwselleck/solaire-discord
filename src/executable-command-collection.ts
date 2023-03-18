@@ -1,5 +1,5 @@
 import Discord from 'discord.js';
-import { Command, Mode } from './command';
+import { ParsedCommandString, Mode } from './command';
 import { validateCommand } from './command-validate';
 
 export type CommandExecuteArgs = Record<string, any>;
@@ -24,7 +24,7 @@ export type GuardFn<M extends Mode> = (
 ) => Promise<void> | void;
 
 interface ExecutableCommand<M extends Mode> {
-  command: Command;
+  command: ParsedCommandString;
   execute: ExecuteFn<M>;
   guard?: GuardFn<M>;
 }
@@ -54,5 +54,9 @@ export class ExecutableCommandCollection<M extends Mode> {
       }
     }
     return null;
+  }
+
+  all() {
+    return this.executableCommands;
   }
 }

@@ -1,4 +1,4 @@
-import { Command, CommandArg } from './command';
+import { CommandArg } from './command';
 
 export const CooldownInEffect = () => {
   return {

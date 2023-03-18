@@ -9,13 +9,13 @@ export interface CommandArg {
   type?: string;
 }
 
-export interface Command {
+export interface ParsedCommandString {
   name: string;
   aliases?: string[];
   args?: CommandArg[];
 }
 
-export function parseCommandString(cmdString: string) {
+export function parseCommandString(cmdString: string): ParsedCommandString {
   const [nameToken, ...argTokens] = cmdString.split(' ');
   if (!nameToken) {
     throw new Error('Invalid command string: Missing name');
