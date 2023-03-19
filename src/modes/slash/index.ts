@@ -3,17 +3,17 @@ import EventEmitter from 'events';
 import { parseCommandString } from '../../command';
 import { logger } from '../../logger';
 
-interface SlashCommandExecutePayload {
+interface SolaireSlashCommandExecutePayload {
   interaction: Discord.ChatInputCommandInteraction;
 }
 
-interface ExecutableSlashCommand {
+interface SolaireSlashCommand {
   name: string;
   description: string;
-  execute(payload: SlashCommandExecutePayload): Promise<void> | void;
+  execute(payload: SolaireSlashCommandExecutePayload): Promise<void> | void;
 }
 
-function buildSlashCommand(command: ExecutableSlashCommand) {
+function buildDiscordSlashCommand(command: SolaireSlashCommand) {
   return new Discord.SlashCommandBuilder()
     .setName(command.name)
     .setDescription(command.description);
@@ -21,7 +21,7 @@ function buildSlashCommand(command: ExecutableSlashCommand) {
 
 interface SlashCommandConfig {
   description: string;
-  execute: ExecutableSlashCommand['execute'];
+  execute: SolaireSlashCommand['execute'];
 }
 
 export interface SlashCommandsConfig {
@@ -33,18 +33,18 @@ export interface SlashCommandsConfig {
 
 export class SlashCommands extends EventEmitter {
   config: SlashCommandsConfig;
-  private executableCommands: Map<string, ExecutableSlashCommand>;
+  private configuredCommands: Map<string, SolaireSlashCommand>;
 
   constructor(config: SlashCommandsConfig) {
     super();
     this.config = config;
-    this.executableCommands = new Map();
+    this.configuredCommands = new Map();
     for (const [cmdString, cmdConfig] of Object.entries(config.commands)) {
       const parsedCommandString = parseCommandString(cmdString);
       if ((parsedCommandString.aliases?.length ?? 0) > 0) {
         console.warn('Slash mode does not support command aliases');
       }
-      this.executableCommands.set(parsedCommandString.name, {
+      this.configuredCommands.set(parsedCommandString.name, {
         name: parsedCommandString.name,
         description: cmdConfig.description,
         execute: cmdConfig.execute
@@ -63,22 +63,41 @@ export class SlashCommands extends EventEmitter {
       this.config.token
     );
 
+    const existingCommands = (await rest.get(
+      Discord.Routes.applicationCommands(this.config.discordClientId)
+    )) as any;
+
+    logger.info(`Configured Commands =>
+${Array.from(this.configuredCommands.values()).map(
+  (command: any) => `${command.name}\n`
+)}`);
+
+    logger.info(`Existing Commands on Start =>
+${existingCommands.map((command: any) => `${command.name}\n`)}`);
+
+    for (const existingCommand of existingCommands) {
+      if (!this.configuredCommands.has(existingCommand.name)) {
+        logger.warn(
+          `Command "${existingCommand.name}" is currently registered, but is not included in your configuration. This command will be removed.`
+        );
+      }
+    }
+
     const slashCommands = [];
-    for (const executableCommand of Array.from(
-      this.executableCommands.values()
+    for (const configuredCommand of Array.from(
+      this.configuredCommands.values()
     )) {
-      console.log('Building slash command for command', executableCommand);
-      const slashCommand = buildSlashCommand(executableCommand);
+      const slashCommand = buildDiscordSlashCommand(configuredCommand);
       slashCommands.push(slashCommand.toJSON());
     }
 
-    logger.info(`Registering ${slashCommands.length} commands`);
     await rest.put(
       Discord.Routes.applicationCommands(this.config.discordClientId),
       {
         body: slashCommands
       }
     );
+    logger.info(`Registered ${slashCommands.length} commands`);
   }
 
   async listen() {
@@ -89,7 +108,7 @@ export class SlashCommands extends EventEmitter {
           return;
         }
 
-        const executableCommand = this.executableCommands.get(
+        const executableCommand = this.configuredCommands.get(
           interaction.commandName
         );
 
