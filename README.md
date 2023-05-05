@@ -46,9 +46,10 @@ Solaire is very much targetted at developers working on smaller or simpler Disco
 If you don't find Solaire's feature-set to be advanced enough for your use case, there are other great Discord/Node frameworks to take a look at 
 - [sapphire](https://github.com/sapphiredev/framework)
 - [discord-akairo](https://github.com/discord-akairo/discord-akairo)
+- [chookscord](https://github.com/chookscord/framework) 
 
 #### Slash Commands
-Solaire does **not** utilize the new Discord [slash commands feature](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6), instead utilizing the old-fashioned method of listening to new message events.
+Solaire does **not** utilize the new Discord [slash commands feature](https://blog.discord.com/slash-commands-are-here-8db0a385d9e6), instead listening for plain new message events and parsing those to figure out which command to execute. There are no plans to add support for slash commands to Solaire, and I instead recommend [chookscord](https://github.com/chookscord/framework), which features the simplest API I've seen for creating slash commands.
 
 ---
 
